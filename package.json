@@ -1,0 +1,25 @@
+{
+  "name": "cortex",
+  "private": true,
+  "packageManager": "bun@1.2.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --filter=@cortex/web...",
+    "build": "turbo run build --filter=@cortex/web...",
+    "start": "bun run --cwd apps/web start",
+    "lint": "bun run lint:check",
+    "lint:check": "turbo run lint:check",
+    "lint:fix": "turbo run lint:fix",
+    "typecheck": "turbo run typecheck",
+    "db:push": "supabase db push",
+    "db:pull": "supabase db pull",
+    "db:new": "supabase migration new"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.4",
+    "turbo": "^2.8.11"
+  }
+}

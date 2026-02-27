@@ -1,0 +1,22 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# next
+.next
+out
+.turbo
+
+# env
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+
+# os
+.DS_Store
+
+# typescript
+*.tsbuildinfo

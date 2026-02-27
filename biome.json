@@ -1,0 +1,37 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!**/node_modules/**",
+      "!**/.next/**",
+      "!**/dist/**",
+      "!**/.turbo/**",
+      "!**/coverage/**",
+      "!**/supabase/.temp/**",
+      "!apps/web/src/components/animate-ui/**"
+    ]
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "asNeeded"
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "tab"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  }
+}
