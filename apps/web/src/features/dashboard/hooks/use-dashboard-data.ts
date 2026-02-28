@@ -198,6 +198,7 @@ export const useDashboardData = () => {
 			protocolCompletedAt: cycle.timeline.protocolCompletedAt,
 			reeval45CompletedAt: cycle.timeline.reeval45CompletedAt,
 		})
+		const isCycleCompleted = Boolean(cycle.timeline.protocolCompletedAt)
 
 		return {
 			greetingName: profileQuery.data?.fullName ?? 'Usuário',
@@ -212,21 +213,25 @@ export const useDashboardData = () => {
 				? 'Refazer Avaliação Aprofundada'
 				: temporalRules.canStartNewCycle
 					? 'Iniciar Novo Diagnóstico'
-					: 'Continuar Diagnóstico',
+					: isCycleCompleted
+						? 'Aguardar Reavaliação'
+						: 'Continuar Diagnóstico',
 			ctaTitle: temporalRules.canRunPhase2Reevaluation
 				? 'Refazer Avaliação Aprofundada'
 				: temporalRules.canStartNewCycle
 					? 'Iniciar Novo Diagnóstico'
-					: 'Continuar Diagnóstico',
+					: isCycleCompleted
+						? 'Ciclo Concluído'
+						: 'Continuar Diagnóstico',
 			ctaDescription: temporalRules.canRunPhase2Reevaluation
 				? '45 dias concluídos desde o protocolo. Refaça sua Avaliação Aprofundada.'
 				: temporalRules.canStartNewCycle
 					? 'Novo ciclo liberado. Refaça a Fase 1 para iniciar um diagnóstico completo.'
-					: cycle.timeline.protocolCompletedAt
+					: isCycleCompleted
 						? temporalRules.phase2Reevaluation.message
 						: 'Retome sua avaliação de onde parou.',
 			statusCards: {
-				current: cycle.timeline.phase2CompletedAt ? 'concluida' : 'pendente',
+				current: cycle.timeline.protocolCompletedAt ? 'concluida' : 'pendente',
 				reeval45: cycle.timeline.reeval45CompletedAt
 					? 'concluida'
 					: temporalRules.phase2Reevaluation.isLocked
