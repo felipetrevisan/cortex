@@ -25,7 +25,7 @@ export const useAuthRedirect = ({
 		}
 
 		if (!requireAuth && isAuthenticated && pathname === '/login') {
-			router.replace('/dashboard')
+			router.replace('/')
 		}
 	}, [isAuthenticated, isLoading, pathname, requireAuth, router])
 

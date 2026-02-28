@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 	const oauthErrorCode = requestUrl.searchParams.get('error_code')
 	const oauthErrorDescription = requestUrl.searchParams.get('error_description')
 	const next = requestUrl.searchParams.get('next')
-	const safeNext = next?.startsWith('/') ? next : '/dashboard'
+	const safeNext = next?.startsWith('/') ? next : '/'
 	const redirectResponse = NextResponse.redirect(new URL(safeNext, request.url))
 
 	if (oauthError) {
