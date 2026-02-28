@@ -86,7 +86,10 @@ export const useAuthForm = () => {
 
 	const signInWithGoogle = async () => {
 		setErrorMessage(null)
-		const origin = window.location.origin
+		const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim()
+		const origin = configuredAppUrl?.length
+			? configuredAppUrl.replace(/\/+$/, '')
+			: window.location.origin
 
 		const { error } = await getSupabaseClient().auth.signInWithOAuth({
 			provider: 'google',
