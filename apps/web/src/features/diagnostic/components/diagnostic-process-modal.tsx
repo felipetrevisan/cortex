@@ -11,6 +11,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@cortex/ui/components/card'
+import { Dialog, DialogContent } from '@cortex/ui/components/dialog'
+import { Textarea } from '@cortex/ui/components/textarea'
 import { cn } from '@cortex/ui/lib/cn'
 import {
 	ArrowLeft,
@@ -28,8 +30,6 @@ import { useRouter } from 'next/navigation'
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { IconButton } from '@/components/animate-ui/components/buttons/icon'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
 import { getDiagnosticResultPath } from '@/features/results/lib/result-routes'
 import { useDiagnosticProcessFlow } from '../hooks/use-diagnostic-process-flow'
 
@@ -233,12 +233,37 @@ const getPillarSummaryLabelStyle = (
 }
 
 const responseLevelDescriptions = [
-	{ value: 1, label: 'Nunca' },
-	{ value: 2, label: 'Raramente' },
-	{ value: 3, label: 'Pouco frequente' },
-	{ value: 4, label: 'Frequentemente' },
-	{ value: 5, label: 'Quase sempre' },
-	{ value: 6, label: 'Sempre' },
+	{
+		value: 1,
+		label: 'Nunca',
+		description: 'Isso não acontece comigo. Não faz parte do meu padrão.',
+	},
+	{
+		value: 2,
+		label: 'Raramente',
+		description: 'Acontece poucas vezes. Não é frequente.',
+	},
+	{
+		value: 3,
+		label: 'Às vezes',
+		description: 'Ocorre em algumas situações. Não é constante, mas se repete.',
+	},
+	{
+		value: 4,
+		label: 'Frequentemente',
+		description:
+			'Acontece com regularidade. Já começa a impactar meu desempenho.',
+	},
+	{
+		value: 5,
+		label: 'Quase sempre',
+		description: 'É um padrão recorrente. Ocorre na maioria das situações.',
+	},
+	{
+		value: 6,
+		label: 'Sempre',
+		description: 'É um comportamento constante. Faz parte do meu padrão fixo.',
+	},
 ] as const
 
 export const DiagnosticProcessModal = ({
@@ -383,6 +408,8 @@ export const DiagnosticProcessModal = ({
 		flow.stage === 'phase2' &&
 		flow.phase2.answeredCount === 0 &&
 		!dismissedInstructions.phase2
+	const isInstructionStage =
+		shouldShowPhase1Instructions || shouldShowPhase2Instructions
 
 	const openDetailedResultPage = (phase: 'phase-1' | 'phase-2') => {
 		if (!flow.cycleId) return
@@ -416,7 +443,7 @@ export const DiagnosticProcessModal = ({
 		>
 			<DialogContent
 				showCloseButton={false}
-				className="flex max-h-[92vh] !w-[min(96vw,88rem)] !max-w-[88rem] sm:!max-w-[88rem] border-0 bg-transparent p-0 shadow-none backdrop-blur-0"
+				className="flex max-h-[92vh] w-[min(96vw,88rem)]! max-w-352! sm:max-w-352! border-0 bg-transparent p-0 shadow-none backdrop-blur-0"
 				onPointerDownOutside={(event) => {
 					if (flow.isSaving) {
 						event.preventDefault()
@@ -429,29 +456,31 @@ export const DiagnosticProcessModal = ({
 				}}
 			>
 				<Card className="flex max-h-[92vh] w-full flex-col overflow-hidden rounded-3xl border-border/75 bg-card shadow-[0_20px_50px_rgba(2,8,23,0.28)]">
-					<CardHeader className="border-b border-border/70 bg-gradient-to-r from-primary/8 via-primary/4 to-transparent p-6">
+					<CardHeader className="border-b border-border/70 bg-linear-to-r from-primary/8 via-primary/4 to-transparent p-6">
 						<div className="flex items-start justify-between gap-4">
 							<div className="space-y-2">
 								<CardDescription className="text-[11px] uppercase tracking-[0.12em]">
 									Cortex System - Diagnóstico Estrutural
 								</CardDescription>
 
-								{stageTitle.eyebrow ? (
+								{!isInstructionStage && stageTitle.eyebrow ? (
 									<CardDescription className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
 										{stageTitle.eyebrow}
 									</CardDescription>
 								) : null}
 
-								<CardTitle className="font-[var(--font-space)] text-xl">
-									{stageTitle.title}
+								<CardTitle className="font-(--font-space) text-xl">
+									{isInstructionStage ? 'Instrução' : stageTitle.title}
 								</CardTitle>
 							</div>
 
 							<div className="flex items-center gap-3">
-								<CircularGradientProgress
-									value={progressPercent}
-									colorToken={progressColorToken}
-								/>
+								{!isInstructionStage ? (
+									<CircularGradientProgress
+										value={progressPercent}
+										colorToken={progressColorToken}
+									/>
+								) : null}
 								<IconButton
 									variant="ghost"
 									size="sm"
@@ -494,12 +523,33 @@ export const DiagnosticProcessModal = ({
 								{shouldShowPhase1Instructions ? (
 									<div className="space-y-6">
 										<div className="space-y-3">
-											<p className="text-lg font-semibold">
-												Como responder a Fase 1
+											<p className="max-w-4xl text-sm leading-7 text-muted-foreground">
+												Cada pergunta descreve um padrão de comportamento
+												observável. Sua tarefa é indicar com que frequência ele
+												realmente ocorre na sua rotina, utilizando a escala
+												oficial do sistema. Não existem respostas certas ou
+												erradas: o objetivo é diagnóstico, não julgamento. Todos
+												os dados são confidenciais.
 											</p>
-											<p className="max-w-3xl text-sm text-muted-foreground">
-												Você vai responder 48 perguntas estruturais. Escolha um
-												nível de frequência de 1 a 6 para cada afirmação.
+											<p className="max-w-4xl text-sm leading-7 text-muted-foreground">
+												Responda com base em fatos recorrentes do seu dia a dia,
+												especialmente na forma como você age sob pressão,
+												cansaço ou tomada de decisão real. Evite responder pela
+												versão ideal de quem você gostaria de ser; responda pelo
+												padrão que efetivamente se repete.
+											</p>
+										</div>
+
+										<div className="space-y-2">
+											<p className="text-lg font-semibold">
+												Escala Oficial do Sistema CORTEX
+											</p>
+											<p className="text-sm text-muted-foreground">
+												Aplicada em todas as perguntas
+											</p>
+											<p className="max-w-4xl text-sm leading-7 text-muted-foreground">
+												A escala vai de 1 a 6, sem ponto neutro, para aumentar a
+												precisão diagnóstica e reduzir respostas ambíguas.
 											</p>
 										</div>
 
@@ -509,13 +559,18 @@ export const DiagnosticProcessModal = ({
 													key={`phase1-instruction:${option.value}`}
 													className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg"
 												>
-													<div className="flex items-center gap-3">
+													<div className="flex items-start gap-3">
 														<span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-base font-semibold text-primary">
 															{option.value}
 														</span>
-														<p className="text-sm font-semibold">
-															{option.label}
-														</p>
+														<div className="space-y-1">
+															<p className="text-sm font-semibold">
+																{option.label}
+															</p>
+															<p className="text-sm leading-6 text-muted-foreground">
+																{option.description}
+															</p>
+														</div>
 													</div>
 												</div>
 											))}
@@ -840,13 +895,33 @@ export const DiagnosticProcessModal = ({
 								{shouldShowPhase2Instructions ? (
 									<div className="space-y-6">
 										<div className="space-y-3">
-											<p className="text-lg font-semibold">
-												Como responder a Fase 2
+											<p className="max-w-4xl text-sm leading-7 text-muted-foreground">
+												Cada pergunta descreve um padrão de comportamento
+												observável. Sua tarefa é indicar com que frequência ele
+												realmente ocorre na sua rotina, utilizando a escala
+												oficial do sistema. Não existem respostas certas ou
+												erradas: o objetivo é diagnóstico, não julgamento. Todos
+												os dados são confidenciais.
 											</p>
-											<p className="max-w-3xl text-sm text-muted-foreground">
-												Esta etapa aprofunda o pilar crítico identificado no
-												diagnóstico estrutural. Use a mesma escala de 1 a 6 para
-												cada pergunta.
+											<p className="max-w-4xl text-sm leading-7 text-muted-foreground">
+												Responda com base em fatos recorrentes do seu dia a dia,
+												especialmente na forma como você age sob pressão,
+												cansaço ou tomada de decisão real. Evite responder pela
+												versão ideal de quem você gostaria de ser; responda pelo
+												padrão que efetivamente se repete.
+											</p>
+										</div>
+
+										<div className="space-y-2">
+											<p className="text-lg font-semibold">
+												Escala Oficial do Sistema CORTEX
+											</p>
+											<p className="text-sm text-muted-foreground">
+												Aplicada em todas as perguntas
+											</p>
+											<p className="max-w-4xl text-sm leading-7 text-muted-foreground">
+												A escala vai de 1 a 6, sem ponto neutro, para aumentar a
+												precisão diagnóstica e reduzir respostas ambíguas.
 											</p>
 										</div>
 
@@ -856,13 +931,18 @@ export const DiagnosticProcessModal = ({
 													key={`phase2-instruction:${option.value}`}
 													className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg"
 												>
-													<div className="flex items-center gap-3">
+													<div className="flex items-start gap-3">
 														<span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-base font-semibold text-primary">
 															{option.value}
 														</span>
-														<p className="text-sm font-semibold">
-															{option.label}
-														</p>
+														<div className="space-y-1">
+															<p className="text-sm font-semibold">
+																{option.label}
+															</p>
+															<p className="text-sm leading-6 text-muted-foreground">
+																{option.description}
+															</p>
+														</div>
 													</div>
 												</div>
 											))}
@@ -1360,7 +1440,7 @@ export const DiagnosticProcessModal = ({
 										<div className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
 											<CheckCircle2 className="size-8" />
 										</div>
-										<h3 className="font-[var(--font-space)] text-2xl">
+										<h3 className="font-(--font-space) text-2xl">
 											Ciclo concluído
 										</h3>
 										<p className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold">

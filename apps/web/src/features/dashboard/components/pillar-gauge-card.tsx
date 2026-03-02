@@ -10,7 +10,7 @@ import {
 } from '@cortex/ui/components/card'
 import { cn } from '@cortex/ui/lib/cn'
 import type { CSSProperties } from 'react'
-import { HoverLift } from '@/components/animated-ui/hover-lift'
+import { HoverLift } from '@/components/animate-ui/components/hover-lift'
 
 interface PillarGaugeCardProps {
 	title: string
@@ -46,7 +46,7 @@ export const PillarGaugeCard = ({
 					<CardDescription className="text-[11px] uppercase tracking-[0.18em]">
 						Pilar
 					</CardDescription>
-					<CardTitle className="font-[var(--font-space)] text-lg leading-snug">
+					<CardTitle className="font-(--font-space) text-lg leading-snug">
 						{title}
 					</CardTitle>
 				</CardHeader>

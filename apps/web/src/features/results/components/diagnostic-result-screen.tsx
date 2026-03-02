@@ -2,6 +2,7 @@
 
 import { PILLARS, type PillarKey } from '@cortex/shared/constants/pillars'
 import { classifyMaturity } from '@cortex/shared/domain/diagnostic-calculations'
+import { Badge } from '@cortex/ui/components/badge'
 import {
 	Card,
 	CardContent,
@@ -18,7 +19,6 @@ import {
 	Sparkles,
 } from 'lucide-react'
 import Link from 'next/link'
-import { Badge } from '@/components/ui/badge'
 import { useActiveNicheAccess } from '@/features/auth/hooks/use-active-niche-access'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { useProfileQuery } from '@/features/auth/hooks/use-profile-query'
@@ -238,7 +238,7 @@ export const DiagnosticResultScreen = ({
 								<Badge variant="secondary">Ciclo {data.cycleNumber}</Badge>
 								<Badge variant="default">{data.phaseLabel}</Badge>
 							</div>
-							<h1 className="font-[var(--font-space)] text-3xl tracking-tight">
+							<h1 className="font-(--font-space) text-3xl tracking-tight">
 								Resultado Completo {data.phaseLabel}
 							</h1>
 							<p className="max-w-3xl text-sm text-muted-foreground">
@@ -259,7 +259,7 @@ export const DiagnosticResultScreen = ({
 					</Card>
 				</div>
 
-				<Card className="rounded-[2rem] border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklch,var(--primary)_12%,var(--card))_0%,color-mix(in_oklch,var(--accent)_8%,var(--card))_100%)] backdrop-blur-xl shadow-[0_18px_48px_rgba(2,8,23,0.14)]">
+				<Card className="rounded-4xl border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklch,var(--primary)_12%,var(--card))_0%,color-mix(in_oklch,var(--accent)_8%,var(--card))_100%)] backdrop-blur-xl shadow-[0_18px_48px_rgba(2,8,23,0.14)]">
 					<CardContent className="grid gap-6 p-7 lg:grid-cols-[1.2fr_0.8fr]">
 						<div className="space-y-4">
 							<div className="flex items-center gap-2 text-primary">
@@ -268,7 +268,7 @@ export const DiagnosticResultScreen = ({
 									Leitura Executiva
 								</span>
 							</div>
-							<h2 className="font-[var(--font-space)] text-2xl tracking-tight">
+							<h2 className="font-(--font-space) text-2xl tracking-tight">
 								{result.kind === 'phase1'
 									? 'Diagnóstico estrutural consolidado'
 									: `Avaliação aprofundada de ${pillarTitle(result.criticalPillar)}`}

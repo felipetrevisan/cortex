@@ -17,7 +17,7 @@ import {
 	Shield,
 } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
-import { AnimatedDropdownContent } from '@/components/animated-ui/animated-dropdown-content'
+import { AnimatedDropdownContent } from '@/components/animate-ui/components/animated-dropdown-content'
 import { AppLogo } from '@/components/layout/app-logo'
 import { OfflinePill } from '@/components/layout/offline-pill'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
@@ -142,9 +142,9 @@ export const DashboardHeader = ({
 										<DropdownMenuItem
 											className={cn(
 												'rounded-lg border-0 bg-transparent px-3 py-2.5 text-[13px] text-foreground transition-colors',
-												'hover:bg-[var(--primary-soft)] hover:text-primary',
-												'focus:bg-[var(--primary-soft)] focus:text-primary',
-												'data-[highlighted]:bg-[var(--primary-soft)] data-[highlighted]:text-primary',
+												'hover:bg-primary-soft hover:text-primary',
+												'focus:bg-primary-soft focus:text-primary',
+												'data-highlighted:bg-primary-soft data-highlighted:text-primary',
 												isDanger &&
 													'text-rose-600 hover:bg-rose-500/15 hover:text-rose-700 focus:bg-rose-500/15 focus:text-rose-700 data-[highlighted]:bg-rose-500/15 data-[highlighted]:text-rose-700 dark:text-rose-300 dark:hover:text-rose-200 dark:focus:text-rose-200 dark:data-[highlighted]:text-rose-200',
 											)}

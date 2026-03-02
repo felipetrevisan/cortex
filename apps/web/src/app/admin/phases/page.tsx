@@ -1,5 +1,5 @@
-import { AdminScreen } from '@/features/admin/components/admin-screen'
+import { AdminPhasesSection } from '@/features/admin/components/sections/phases-section'
 
 export default function AdminPhasesPage() {
-	return <AdminScreen section="phases" />
+	return <AdminPhasesSection />
 }

@@ -1,5 +1,5 @@
-import { AdminScreen } from '@/features/admin/components/admin-screen'
+import { AdminNichesSection } from '@/features/admin/components/sections/niches-section'
 
 export default function AdminNichesPage() {
-	return <AdminScreen section="niches" />
+	return <AdminNichesSection />
 }

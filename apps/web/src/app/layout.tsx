@@ -27,7 +27,7 @@ export default function RootLayout({
 	return (
 		<html lang="pt-BR" suppressHydrationWarning>
 			<body
-				className={`${manrope.variable} ${spaceGrotesk.variable} font-[var(--font-manrope)] antialiased`}
+				className={`${manrope.variable} ${spaceGrotesk.variable} font-(--font-manrope) antialiased`}
 			>
 				<AppProviders>{children}</AppProviders>
 			</body>

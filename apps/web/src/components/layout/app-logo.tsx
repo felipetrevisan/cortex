@@ -116,7 +116,7 @@ export const AppLogo = ({
 			<div className="leading-none">
 				<strong
 					className={cn(
-						'font-[var(--font-space)] font-extrabold uppercase',
+						'font-extrabold uppercase',
 						sizeClasses[size].title,
 						isDarkSurface ? 'text-white' : 'text-foreground',
 					)}

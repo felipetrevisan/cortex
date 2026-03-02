@@ -1,5 +1,5 @@
-import { AdminScreen } from '@/features/admin/components/admin-screen'
+import { AdminUsersSection } from '@/features/admin/components/sections/users-section'
 
 export default function AdminUsersPage() {
-	return <AdminScreen section="users" />
+	return <AdminUsersSection />
 }

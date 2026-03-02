@@ -11,6 +11,13 @@ import {
 } from '@cortex/ui/components/card'
 import { Progress } from '@cortex/ui/components/progress'
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@cortex/ui/components/select'
+import {
 	ArrowDown,
 	ArrowRight,
 	ArrowUp,
@@ -25,15 +32,8 @@ import {
 import { motion } from 'motion/react'
 import Link from 'next/link'
 import { useState } from 'react'
-import { Reveal } from '@/components/animated-ui/reveal'
+import { Reveal } from '@/components/animate-ui/components/reveal'
 import { UserAvatar } from '@/components/layout/user-avatar'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
 import { useActiveNicheAccess } from '@/features/auth/hooks/use-active-niche-access'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { DiagnosticProcessModal } from '@/features/diagnostic/components/diagnostic-process-modal'
@@ -144,7 +144,7 @@ export const DashboardScreen = () => {
 								avatarUrl={viewModel.avatarUrl}
 								size="lg"
 							/>
-							<h1 className="font-[var(--font-space)] text-3xl tracking-tight">
+							<h1 className="font-(--font-space) text-3xl tracking-tight">
 								Olá, {viewModel.greetingName}
 							</h1>
 							<span className="rounded-full border border-border/70 bg-secondary/55 px-3 py-1 text-xs font-semibold">

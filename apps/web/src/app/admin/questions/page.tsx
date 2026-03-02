@@ -1,5 +1,5 @@
-import { AdminScreen } from '@/features/admin/components/admin-screen'
+import { AdminQuestionsSection } from '@/features/admin/components/sections/questions-section'
 
 export default function AdminQuestionsPage() {
-	return <AdminScreen section="questions" />
+	return <AdminQuestionsSection />
 }

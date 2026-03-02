@@ -4,8 +4,8 @@ import { XIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import * as React from 'react'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { cn } from '../lib/cn'
+import { Button } from './button'
 
 interface DialogStateContextValue {
 	open: boolean

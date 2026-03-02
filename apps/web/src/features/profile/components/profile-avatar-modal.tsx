@@ -13,7 +13,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Loader2, Upload, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { AnimatedModalShell } from '@/components/animated-ui/animated-modal-shell'
+import { AnimatedModalShell } from '@/components/animate-ui/components/animated-modal-shell'
 import { UserAvatar } from '@/components/layout/user-avatar'
 import { useAuth } from '@/features/auth/components/auth-provider'
 import { queryKeys } from '@/lib/query/keys'
@@ -194,8 +194,8 @@ export const ProfileAvatarModal = ({
 			disabled={isSaving}
 		>
 			<Card className="overflow-hidden rounded-3xl border-border/75 bg-card shadow-[0_20px_50px_rgba(2,8,23,0.28)]">
-				<CardHeader className="border-b border-border/70 bg-gradient-to-r from-primary/8 via-primary/4 to-transparent p-6">
-					<CardTitle className="font-[var(--font-space)] text-xl">
+				<CardHeader className="border-b border-border/70 bg-linear-to-r from-primary/8 via-primary/4 to-transparent p-6">
+					<CardTitle className="font-(--font-space) text-xl">
 						Atualizar foto de perfil
 					</CardTitle>
 					<CardDescription>
