@@ -1,6 +1,5 @@
 'use client'
 
-import { PILLARS, type PillarKey } from '@cortex/shared/constants/pillars'
 import { classifyMaturity } from '@cortex/shared/domain/diagnostic-calculations'
 import { Badge } from '@cortex/ui/components/badge'
 import {
@@ -24,6 +23,10 @@ import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { useProfileQuery } from '@/features/auth/hooks/use-profile-query'
 import { resolveIsAdmin } from '@/features/auth/lib/role'
 import { DashboardHeader } from '@/features/dashboard/components/dashboard-header'
+import {
+	getPillarOutcomeCardStyle,
+	getPillarOutcomeLabelStyle,
+} from '@/features/diagnostic/lib/pillar-outcome-style'
 import { cn } from '@/lib/utils'
 import {
 	buildDonutBackground,
@@ -37,27 +40,6 @@ const formatDate = (value: Date | null): string => {
 	return new Intl.DateTimeFormat('pt-BR', {
 		dateStyle: 'long',
 	}).format(value)
-}
-
-const getPillarColorToken = (pillar: PillarKey | null) =>
-	PILLARS.find((item) => item.key === pillar)?.colorToken ?? 'primary'
-
-const getPillarCardStyle = (pillar: PillarKey | null) => {
-	const colorToken = getPillarColorToken(pillar)
-
-	return {
-		borderColor: `color-mix(in oklch, var(--${colorToken}) 40%, transparent)`,
-		background: `linear-gradient(145deg, color-mix(in oklch, var(--${colorToken}) 16%, var(--card)) 0%, color-mix(in oklch, var(--${colorToken}) 6%, var(--card)) 100%)`,
-		boxShadow: `0 0 24px color-mix(in oklch, var(--${colorToken}) 18%, transparent)`,
-	}
-}
-
-const getPillarLabelStyle = (pillar: PillarKey | null) => {
-	const colorToken = getPillarColorToken(pillar)
-
-	return {
-		color: `color-mix(in oklch, var(--${colorToken}) 78%, var(--foreground))`,
-	}
 }
 
 const DetailBarChart = ({
@@ -259,8 +241,23 @@ export const DiagnosticResultScreen = ({
 					</Card>
 				</div>
 
+				<Card className="mx-auto w-full max-w-sm rounded-3xl border-border/70 bg-card/82 text-center backdrop-blur-xl shadow-[0_16px_42px_rgba(2,8,23,0.12)]">
+					<CardContent className="space-y-2 p-6">
+						<p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+							Índice principal
+						</p>
+						<p className="text-5xl font-bold">{result.generalIndex}%</p>
+						<p className="text-base font-semibold text-foreground">
+							{generalMaturity.label}
+						</p>
+						<p className="text-sm leading-6 text-muted-foreground">
+							{generalMaturity.description}
+						</p>
+					</CardContent>
+				</Card>
+
 				<Card className="rounded-4xl border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklch,var(--primary)_12%,var(--card))_0%,color-mix(in_oklch,var(--accent)_8%,var(--card))_100%)] backdrop-blur-xl shadow-[0_18px_48px_rgba(2,8,23,0.14)]">
-					<CardContent className="grid gap-6 p-7 lg:grid-cols-[1.2fr_0.8fr]">
+					<CardContent className="space-y-6 p-7">
 						<div className="space-y-4">
 							<div className="flex items-center gap-2 text-primary">
 								<Sparkles className="size-4" />
@@ -277,82 +274,67 @@ export const DiagnosticResultScreen = ({
 								{result.overviewText}
 							</p>
 						</div>
-
-						<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-							<Card className="rounded-3xl border-border/70 bg-background/60 backdrop-blur-lg">
-								<CardContent className="p-5">
-									<p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-										Índice principal
-									</p>
-									<p className="mt-2 text-4xl font-bold">
-										{result.generalIndex}%
-									</p>
-									<p className="mt-2 text-sm font-semibold text-foreground">
-										{generalMaturity.label}
-									</p>
-									<p className="mt-1 text-sm text-muted-foreground">
-										{generalMaturity.description}
-									</p>
-								</CardContent>
-							</Card>
-							{result.kind === 'phase1' ? (
-								<div className="grid gap-3">
-									<Card className="rounded-3xl border-border/70 bg-background/60 backdrop-blur-lg">
-										<CardContent className="space-y-2 p-5">
-											<p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-												Pilares-chave
-											</p>
-											<div className="grid gap-3">
-												<div
-													className="rounded-2xl border p-4"
-													style={getPillarCardStyle(result.strongPillar)}
-												>
-													<p
-														className="text-xs uppercase tracking-[0.16em]"
-														style={getPillarLabelStyle(result.strongPillar)}
-													>
-														Forte
-													</p>
-													<p className="mt-2 text-lg font-semibold">
-														{pillarTitle(result.strongPillar)}
-													</p>
-												</div>
-												<div
-													className="rounded-2xl border p-4"
-													style={getPillarCardStyle(result.criticalPillar)}
-												>
-													<p
-														className="text-xs uppercase tracking-[0.16em]"
-														style={getPillarLabelStyle(result.criticalPillar)}
-													>
-														Crítico
-													</p>
-													<p className="mt-2 text-lg font-semibold">
-														{pillarTitle(result.criticalPillar)}
-													</p>
-												</div>
-											</div>
-										</CardContent>
-									</Card>
-								</div>
-							) : (
-								<Card className="rounded-3xl border-border/70 bg-background/60 backdrop-blur-lg">
-									<CardContent className="space-y-2 p-5">
-										<p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-											Leitura refinada
-										</p>
-										<p className="text-sm font-semibold">
-											Pilar crítico: {pillarTitle(result.criticalPillar)}
-										</p>
-										<p className="text-sm font-semibold">
-											Pontos críticos: {result.criticalPoints.length}
-										</p>
-									</CardContent>
-								</Card>
-							)}
-						</div>
 					</CardContent>
 				</Card>
+
+				{result.kind === 'phase1' ? (
+					<div className="grid gap-4 lg:grid-cols-2">
+						<div
+							className="rounded-3xl border p-5"
+							style={getPillarOutcomeCardStyle('strong')}
+						>
+							<p
+								className="text-xs uppercase tracking-[0.16em]"
+								style={getPillarOutcomeLabelStyle('strong')}
+							>
+								Forte
+							</p>
+							<p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+								{pillarTitle(result.strongPillar)}
+							</p>
+						</div>
+						<div
+							className="rounded-3xl border p-5"
+							style={getPillarOutcomeCardStyle('critical')}
+						>
+							<p
+								className="text-xs uppercase tracking-[0.16em]"
+								style={getPillarOutcomeLabelStyle('critical')}
+							>
+								Crítico
+							</p>
+							<p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+								{pillarTitle(result.criticalPillar)}
+							</p>
+						</div>
+					</div>
+				) : (
+					<Card
+						className="rounded-3xl border-border/70 bg-background/60 backdrop-blur-lg"
+						style={getPillarOutcomeCardStyle('critical')}
+					>
+						<CardContent className="space-y-2 p-5">
+							<p
+								className="text-xs uppercase tracking-[0.14em]"
+								style={getPillarOutcomeLabelStyle('critical')}
+							>
+								Leitura refinada
+							</p>
+							<p
+								className="text-sm font-semibold"
+								style={getPillarOutcomeLabelStyle('critical')}
+							>
+								Pilar crítico: {pillarTitle(result.criticalPillar)}
+							</p>
+							<p
+								className="text-sm font-semibold"
+								style={getPillarOutcomeLabelStyle('critical')}
+							>
+								Pontos críticos: {result.criticalPoints.length}
+							</p>
+						</CardContent>
+					</Card>
+				)}
 
 				<div className="grid gap-5 xl:grid-cols-2">
 					<Card className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
@@ -454,10 +436,16 @@ export const DiagnosticResultScreen = ({
 						</Card>
 					</div>
 				) : (
-					<Card className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
+					<Card
+						className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]"
+						style={getPillarOutcomeCardStyle('critical')}
+					>
 						<CardHeader className="p-6 pb-3">
 							<CardDescription>Diagnóstico ponto a ponto</CardDescription>
-							<CardTitle className="text-lg">
+							<CardTitle
+								className="text-lg"
+								style={getPillarOutcomeLabelStyle('critical')}
+							>
 								Pontos críticos identificados
 							</CardTitle>
 						</CardHeader>
