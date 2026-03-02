@@ -68,10 +68,16 @@ const resolveStageTitle = (
 	flow: ReturnType<typeof useDiagnosticProcessFlow>,
 ) => {
 	if (flow.stage === 'phase1') {
-		return `Pilar ${flow.phase1.currentPillarIndex} de ${flow.phase1.totalPillars} - ${flow.phase1.currentPillarTitle}`
+		return {
+			eyebrow: `Pilar ${flow.phase1.currentPillarIndex} de ${flow.phase1.totalPillars}`,
+			title: flow.phase1.currentPillarTitle ?? 'Diagnóstico estrutural',
+		}
 	}
 
-	return stageTitleMap[flow.stage] ?? 'Diagnóstico comportamental'
+	return {
+		eyebrow: null,
+		title: stageTitleMap[flow.stage] ?? 'Diagnóstico comportamental',
+	}
 }
 
 interface CircularGradientProgressProps {
@@ -258,12 +264,18 @@ export const DiagnosticProcessModal = ({
 					<CardHeader className="border-b border-border/70 bg-gradient-to-r from-primary/8 via-primary/4 to-transparent p-6">
 						<div className="flex items-start justify-between gap-4">
 							<div className="space-y-2">
-								<CardDescription className="text-xs uppercase tracking-[0.14em]">
+								<CardDescription className="text-[11px] uppercase tracking-[0.12em]">
 									Cortex System - Diagnóstico Estrutural
 								</CardDescription>
 
+								{resolveStageTitle(flow).eyebrow ? (
+									<CardDescription className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+										{resolveStageTitle(flow).eyebrow}
+									</CardDescription>
+								) : null}
+
 								<CardTitle className="font-[var(--font-space)] text-xl">
-									{resolveStageTitle(flow)}
+									{resolveStageTitle(flow).title}
 								</CardTitle>
 							</div>
 
