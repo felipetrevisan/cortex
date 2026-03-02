@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { queryKeys } from '@/lib/query/keys'
 import { getSupabaseClient } from '@/lib/supabase/client'
+import { safeStorage } from '@/lib/utils/storage'
 
 const normalizeProviderKey = (value: string): string => {
 	const normalized = value.trim().toLowerCase()
@@ -52,6 +53,12 @@ interface AdminResetFlowResult {
 	phase2_deleted?: number
 	protocol_deleted?: number
 }
+
+const getProtocolCheckpointKey = (userId: string, nicheId: string) =>
+	`cortex.protocol.checkpoint.${userId}.${nicheId}`
+
+const getDiagnosticCheckpointKey = (userId: string, nicheId: string) =>
+	`cortex.diagnostic.checkpoint.${userId}.${nicheId}`
 
 const buildStats = (users: AdminUserViewModel[]): AdminUsersStats => {
 	const byProviderMap = new Map<string, number>()
@@ -383,6 +390,13 @@ export const useAdminUsers = () => {
 			const phase1Deleted = data.phase1_deleted ?? 0
 			const phase2Deleted = data.phase2_deleted ?? 0
 			const protocolDeleted = data.protocol_deleted ?? 0
+
+			safeStorage.remove(
+				getProtocolCheckpointKey(payload.userId, payload.nicheId),
+			)
+			safeStorage.remove(
+				getDiagnosticCheckpointKey(payload.userId, payload.nicheId),
+			)
 
 			toast.success(
 				`Fluxo resetado. ${cyclesDeleted} ciclo(s), ${phase1Deleted} resposta(s) da Fase 1, ${phase2Deleted} da Fase 2 e ${protocolDeleted} protocolo(s) removidos.`,

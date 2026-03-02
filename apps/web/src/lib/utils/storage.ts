@@ -16,4 +16,12 @@ export const safeStorage = {
 			// no-op
 		}
 	},
+	remove(key: string): void {
+		if (typeof window === 'undefined') return
+		try {
+			window.localStorage.removeItem(key)
+		} catch {
+			// no-op
+		}
+	},
 }
