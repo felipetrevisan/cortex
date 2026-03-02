@@ -384,7 +384,7 @@ export const DiagnosticProcessModal = ({
 		>
 			<DialogContent
 				showCloseButton={false}
-				className="flex max-h-[92vh] w-[min(96vw,88rem)] max-w-[88rem] border-0 bg-transparent p-0 shadow-none backdrop-blur-0"
+				className="flex max-h-[92vh] !w-[min(96vw,88rem)] !max-w-[88rem] sm:!max-w-[88rem] border-0 bg-transparent p-0 shadow-none backdrop-blur-0"
 				onPointerDownOutside={(event) => {
 					if (flow.isSaving) {
 						event.preventDefault()
