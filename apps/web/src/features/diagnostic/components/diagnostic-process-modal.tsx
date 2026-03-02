@@ -41,6 +41,8 @@ interface ReflectionFormValues {
 	reflections: string[]
 }
 
+type InstructionStage = 'phase1' | 'phase2'
+
 const pillarLabel = (pillar: PillarKey | null): string => {
 	if (!pillar) return '-'
 	return PILLARS.find((item) => item.key === pillar)?.title ?? pillar
@@ -229,12 +231,28 @@ const getPillarSummaryLabelStyle = (
 	}
 }
 
+const responseLevelDescriptions = [
+	{ value: 1, label: 'Nunca' },
+	{ value: 2, label: 'Raramente' },
+	{ value: 3, label: 'Pouco frequente' },
+	{ value: 4, label: 'Frequentemente' },
+	{ value: 5, label: 'Quase sempre' },
+	{ value: 6, label: 'Sempre' },
+] as const
+
 export const DiagnosticProcessModal = ({
 	open,
 	onOpenChange,
 }: DiagnosticProcessModalProps) => {
 	const router = useRouter()
 	const flow = useDiagnosticProcessFlow(open)
+	const [dismissedInstructions, setDismissedInstructions] = useState<
+		Record<InstructionStage, boolean>
+	>({
+		phase1: false,
+		phase2: false,
+	})
+	const [pendingAnswerKey, setPendingAnswerKey] = useState<string | null>(null)
 	const [resultDetailStage, setResultDetailStage] = useState<
 		'phase1' | 'phase2' | null
 	>(null)
@@ -264,6 +282,16 @@ export const DiagnosticProcessModal = ({
 			setResultDetailStage(null)
 		}
 	}, [open, resultDetailStage])
+
+	useEffect(() => {
+		if (!open) {
+			setDismissedInstructions({
+				phase1: false,
+				phase2: false,
+			})
+			setPendingAnswerKey(null)
+		}
+	}, [open])
 
 	const progressPercent = useMemo(() => {
 		if (
@@ -315,11 +343,35 @@ export const DiagnosticProcessModal = ({
 		flow.stage === 'phase1-result' && resultDetailStage === 'phase1'
 	const isShowingPhase2DetailedResult =
 		flow.stage === 'phase2-result' && resultDetailStage === 'phase2'
+	const shouldShowPhase1Instructions =
+		flow.stage === 'phase1' &&
+		flow.phase1.answeredCount === 0 &&
+		!dismissedInstructions.phase1
+	const shouldShowPhase2Instructions =
+		flow.stage === 'phase2' &&
+		flow.phase2.answeredCount === 0 &&
+		!dismissedInstructions.phase2
 
 	const openDetailedResultPage = (phase: 'phase-1' | 'phase-2') => {
 		if (!flow.cycleId) return
 		onOpenChange(false)
 		router.push(getDiagnosticResultPath(flow.cycleId, phase))
+	}
+
+	const handlePhase1Answer = async (value: number) => {
+		const key = `phase1:${value}`
+		setPendingAnswerKey(key)
+		await new Promise((resolve) => setTimeout(resolve, 140))
+		await flow.savePhase1Answer(value)
+		setPendingAnswerKey(null)
+	}
+
+	const handlePhase2Answer = async (value: number) => {
+		const key = `phase2:${value}`
+		setPendingAnswerKey(key)
+		await new Promise((resolve) => setTimeout(resolve, 140))
+		await flow.savePhase2Answer(value)
+		setPendingAnswerKey(null)
 	}
 
 	return (
@@ -332,7 +384,7 @@ export const DiagnosticProcessModal = ({
 		>
 			<DialogContent
 				showCloseButton={false}
-				className="flex max-h-[90vh] w-full max-w-3xl border-0 bg-transparent p-0 shadow-none backdrop-blur-0"
+				className="flex max-h-[92vh] w-full max-w-5xl border-0 bg-transparent p-0 shadow-none backdrop-blur-0"
 				onPointerDownOutside={(event) => {
 					if (flow.isSaving) {
 						event.preventDefault()
@@ -344,7 +396,7 @@ export const DiagnosticProcessModal = ({
 					}
 				}}
 			>
-				<Card className="flex max-h-[90vh] w-full flex-col overflow-hidden rounded-3xl border-border/75 bg-card shadow-[0_20px_50px_rgba(2,8,23,0.28)]">
+				<Card className="flex max-h-[92vh] w-full flex-col overflow-hidden rounded-3xl border-border/75 bg-card shadow-[0_20px_50px_rgba(2,8,23,0.28)]">
 					<CardHeader className="border-b border-border/70 bg-gradient-to-r from-primary/8 via-primary/4 to-transparent p-6">
 						<div className="flex items-start justify-between gap-4">
 							<div className="space-y-2">
@@ -387,6 +439,8 @@ export const DiagnosticProcessModal = ({
 							'space-y-6 p-6',
 							flow.stage === 'phase2' ||
 								flow.stage === 'phase2-result' ||
+								shouldShowPhase1Instructions ||
+								shouldShowPhase2Instructions ||
 								(flow.stage === 'phase1-result' &&
 									resultDetailStage === 'phase1')
 								? 'min-h-0 overflow-y-auto pr-4'
@@ -405,7 +459,54 @@ export const DiagnosticProcessModal = ({
 									</p>
 								) : null}
 
-								{flow.stage === 'phase1' ? (
+								{shouldShowPhase1Instructions ? (
+									<div className="space-y-6">
+										<div className="space-y-3">
+											<p className="text-lg font-semibold">
+												Como responder a Fase 1
+											</p>
+											<p className="max-w-3xl text-sm text-muted-foreground">
+												Você vai responder 48 perguntas estruturais. Escolha um
+												nível de frequência de 1 a 6 para cada afirmação.
+											</p>
+										</div>
+
+										<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+											{responseLevelDescriptions.map((option) => (
+												<div
+													key={`phase1-instruction:${option.value}`}
+													className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg"
+												>
+													<div className="flex items-center gap-3">
+														<span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-base font-semibold text-primary">
+															{option.value}
+														</span>
+														<p className="text-sm font-semibold">
+															{option.label}
+														</p>
+													</div>
+												</div>
+											))}
+										</div>
+
+										<div className="flex justify-end">
+											<Button
+												className="h-11 rounded-2xl"
+												onClick={() =>
+													setDismissedInstructions((current) => ({
+														...current,
+														phase1: true,
+													}))
+												}
+											>
+												Iniciar Fase 1
+												<ArrowRight className="size-4" />
+											</Button>
+										</div>
+									</div>
+								) : null}
+
+								{flow.stage === 'phase1' && !shouldShowPhase1Instructions ? (
 									<div className="space-y-6">
 										<div className="space-y-2">
 											<p className="text-xl font-medium leading-relaxed">
@@ -413,25 +514,46 @@ export const DiagnosticProcessModal = ({
 											</p>
 										</div>
 
-										<div className="grid gap-3 sm:grid-cols-2">
+										<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
 											{flow.currentPhase1Options.map((option) => (
-												<Button
+												<motion.div
 													key={`phase1:${option.value}:${option.label}`}
-													variant="outline"
-													className={cn(
-														'h-16 justify-start rounded-2xl border-border/75 px-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/8',
-														flow.isSaving ? 'opacity-70' : '',
-													)}
-													disabled={flow.isSaving}
-													onClick={() => flow.savePhase1Answer(option.value)}
+													animate={
+														pendingAnswerKey === `phase1:${option.value}`
+															? {
+																	scale: 1.08,
+																	y: -6,
+																}
+															: {
+																	scale: 1,
+																	y: 0,
+																}
+													}
+													transition={{
+														type: 'spring',
+														stiffness: 420,
+														damping: 24,
+													}}
 												>
-													<span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-sm font-semibold text-primary">
+													<Button
+														variant="outline"
+														className={cn(
+															'h-14 w-full justify-center rounded-2xl border-border/75 px-3 text-center text-lg font-semibold transition-all hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/8',
+															pendingAnswerKey === `phase1:${option.value}`
+																? 'border-primary bg-primary/15 text-primary shadow-[0_0_0_1px_color-mix(in_oklch,var(--primary)_32%,transparent),0_0_28px_color-mix(in_oklch,var(--primary)_35%,transparent)]'
+																: '',
+															flow.isSaving ? 'opacity-70' : '',
+														)}
+														disabled={
+															flow.isSaving || pendingAnswerKey !== null
+														}
+														onClick={() =>
+															void handlePhase1Answer(option.value)
+														}
+													>
 														{option.value}
-													</span>
-													<span className="ml-3 text-sm font-medium">
-														{option.label}
-													</span>
-												</Button>
+													</Button>
+												</motion.div>
 											))}
 										</div>
 									</div>
@@ -581,7 +703,7 @@ export const DiagnosticProcessModal = ({
 													})}
 												</div>
 
-												<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+												<div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 													<Button
 														variant="outline"
 														className="h-11 rounded-2xl"
@@ -649,7 +771,7 @@ export const DiagnosticProcessModal = ({
 													})}
 												</div>
 
-												<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+												<div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 													<div className="flex flex-col gap-3 sm:flex-row">
 														<Button
 															variant="outline"
@@ -681,7 +803,55 @@ export const DiagnosticProcessModal = ({
 									</div>
 								) : null}
 
-								{flow.stage === 'phase2' ? (
+								{shouldShowPhase2Instructions ? (
+									<div className="space-y-6">
+										<div className="space-y-3">
+											<p className="text-lg font-semibold">
+												Como responder a Fase 2
+											</p>
+											<p className="max-w-3xl text-sm text-muted-foreground">
+												Esta etapa aprofunda o pilar crítico identificado no
+												diagnóstico estrutural. Use a mesma escala de 1 a 6 para
+												cada pergunta.
+											</p>
+										</div>
+
+										<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+											{responseLevelDescriptions.map((option) => (
+												<div
+													key={`phase2-instruction:${option.value}`}
+													className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg"
+												>
+													<div className="flex items-center gap-3">
+														<span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-base font-semibold text-primary">
+															{option.value}
+														</span>
+														<p className="text-sm font-semibold">
+															{option.label}
+														</p>
+													</div>
+												</div>
+											))}
+										</div>
+
+										<div className="flex justify-end">
+											<Button
+												className="h-11 rounded-2xl"
+												onClick={() =>
+													setDismissedInstructions((current) => ({
+														...current,
+														phase2: true,
+													}))
+												}
+											>
+												Iniciar Fase 2
+												<ArrowRight className="size-4" />
+											</Button>
+										</div>
+									</div>
+								) : null}
+
+								{flow.stage === 'phase2' && !shouldShowPhase2Instructions ? (
 									<div className="space-y-6">
 										<div className="space-y-2">
 											<p className="text-xl font-medium leading-relaxed">
@@ -689,25 +859,46 @@ export const DiagnosticProcessModal = ({
 											</p>
 										</div>
 
-										<div className="grid gap-3 sm:grid-cols-2">
+										<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
 											{flow.phase2.currentOptions.map((option) => (
-												<Button
+												<motion.div
 													key={`phase2:${option.value}:${option.label}`}
-													variant="outline"
-													className={cn(
-														'h-16 justify-start rounded-2xl border-border/75 px-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/8',
-														flow.isSaving ? 'opacity-70' : '',
-													)}
-													disabled={flow.isSaving}
-													onClick={() => flow.savePhase2Answer(option.value)}
+													animate={
+														pendingAnswerKey === `phase2:${option.value}`
+															? {
+																	scale: 1.08,
+																	y: -6,
+																}
+															: {
+																	scale: 1,
+																	y: 0,
+																}
+													}
+													transition={{
+														type: 'spring',
+														stiffness: 420,
+														damping: 24,
+													}}
 												>
-													<span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-sm font-semibold text-primary">
+													<Button
+														variant="outline"
+														className={cn(
+															'h-14 w-full justify-center rounded-2xl border-border/75 px-3 text-center text-lg font-semibold transition-all hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/8',
+															pendingAnswerKey === `phase2:${option.value}`
+																? 'border-primary bg-primary/15 text-primary shadow-[0_0_0_1px_color-mix(in_oklch,var(--primary)_32%,transparent),0_0_28px_color-mix(in_oklch,var(--primary)_35%,transparent)]'
+																: '',
+															flow.isSaving ? 'opacity-70' : '',
+														)}
+														disabled={
+															flow.isSaving || pendingAnswerKey !== null
+														}
+														onClick={() =>
+															void handlePhase2Answer(option.value)
+														}
+													>
 														{option.value}
-													</span>
-													<span className="ml-3 text-sm font-medium">
-														{option.label}
-													</span>
-												</Button>
+													</Button>
+												</motion.div>
 											))}
 										</div>
 									</div>

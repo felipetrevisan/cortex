@@ -405,12 +405,16 @@ const EmptyTableState = ({
 	</TableRow>
 )
 
-const formatDateTime = (value: Date | null): string => {
-	if (!value) return '-'
+const formatDateTime = (
+	value: Date | string | number | null | undefined,
+): string => {
+	if (value == null) return '-'
+	const parsed = value instanceof Date ? value : new Date(value)
+	if (Number.isNaN(parsed.getTime())) return '-'
 	return new Intl.DateTimeFormat('pt-BR', {
 		dateStyle: 'short',
 		timeStyle: 'short',
-	}).format(value)
+	}).format(parsed)
 }
 
 const getProviderLabel = (provider: string): string => {
