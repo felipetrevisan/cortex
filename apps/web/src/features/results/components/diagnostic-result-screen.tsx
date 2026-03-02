@@ -241,23 +241,8 @@ export const DiagnosticResultScreen = ({
 					</Card>
 				</div>
 
-				<Card className="mx-auto w-full max-w-sm rounded-3xl border-border/70 bg-card/82 text-center backdrop-blur-xl shadow-[0_16px_42px_rgba(2,8,23,0.12)]">
-					<CardContent className="space-y-2 p-6">
-						<p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-							Índice principal
-						</p>
-						<p className="text-5xl font-bold">{result.generalIndex}%</p>
-						<p className="text-base font-semibold text-foreground">
-							{generalMaturity.label}
-						</p>
-						<p className="text-sm leading-6 text-muted-foreground">
-							{generalMaturity.description}
-						</p>
-					</CardContent>
-				</Card>
-
 				<Card className="rounded-4xl border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklch,var(--primary)_12%,var(--card))_0%,color-mix(in_oklch,var(--accent)_8%,var(--card))_100%)] backdrop-blur-xl shadow-[0_18px_48px_rgba(2,8,23,0.14)]">
-					<CardContent className="space-y-6 p-7">
+					<CardContent className="grid gap-6 p-7 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
 						<div className="space-y-4">
 							<div className="flex items-center gap-2 text-primary">
 								<Sparkles className="size-4" />
@@ -273,6 +258,19 @@ export const DiagnosticResultScreen = ({
 							<p className="max-w-3xl text-sm leading-7 text-foreground/78">
 								{result.overviewText}
 							</p>
+						</div>
+						<div className="lg:justify-self-end">
+							<Card className="w-full min-w-[240px] rounded-3xl border-border/70 bg-background/60 text-center backdrop-blur-lg">
+								<CardContent className="space-y-2 p-5">
+									<p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+										Índice Geral
+									</p>
+									<p className="text-5xl font-bold">{result.generalIndex}%</p>
+									<p className="text-base font-semibold text-foreground">
+										{generalMaturity.label}
+									</p>
+								</CardContent>
+							</Card>
 						</div>
 					</CardContent>
 				</Card>
