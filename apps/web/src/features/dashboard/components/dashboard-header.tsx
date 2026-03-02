@@ -19,7 +19,6 @@ import {
 import { usePathname, useRouter } from 'next/navigation'
 import { AnimatedDropdownContent } from '@/components/animated-ui/animated-dropdown-content'
 import { AppLogo } from '@/components/layout/app-logo'
-import { OfflinePill } from '@/components/layout/offline-pill'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { UserAvatar } from '@/components/layout/user-avatar'
 import { useAuth } from '@/features/auth/components/auth-provider'
@@ -101,10 +100,9 @@ export const DashboardHeader = ({
 						: 'cortex-container',
 				)}
 			>
-				<AppLogo />
+				<AppLogo variant="premium" />
 
 				<div className="flex items-center gap-2 md:gap-3">
-					<OfflinePill />
 					<ThemeToggle />
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>

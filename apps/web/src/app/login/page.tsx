@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 	const oauthErrorDescription = asString(params.error_description)
 
 	const oauthErrorMessage = oauthError
-		? `Falha no login Google (${oauthErrorCode ?? oauthError}). ${oauthErrorDescription ?? 'Verifique a configuração do provider no Supabase e Google Cloud.'}`
+		? `Não foi possível concluir seu acesso. ${oauthErrorDescription ?? 'Tente novamente em instantes.'}${oauthErrorCode ? ` (${oauthErrorCode})` : ''}`
 		: null
 
 	return <LoginScreen oauthErrorMessage={oauthErrorMessage} />

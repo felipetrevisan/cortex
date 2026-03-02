@@ -190,7 +190,7 @@ export const LoginScreen = ({ oauthErrorMessage = null }: LoginScreenProps) => {
 						className="relative z-20 flex h-full flex-col justify-between p-12"
 						delay={0.08}
 					>
-						<AppLogo />
+						<AppLogo variant="tech" />
 
 						<div className="max-w-xl space-y-6">
 							<h1 className="font-[var(--font-space)] text-5xl leading-[1.05] tracking-tight">
@@ -219,7 +219,7 @@ export const LoginScreen = ({ oauthErrorMessage = null }: LoginScreenProps) => {
 				<section className="grid place-items-center p-6 md:p-10 lg:p-12">
 					<Reveal className="w-full max-w-[30rem]" delay={0.14}>
 						<div className="mb-5 lg:hidden">
-							<AppLogo />
+							<AppLogo variant="tech" />
 						</div>
 
 						<Card className="relative overflow-hidden border-border/75 bg-card/92 shadow-[0_16px_50px_rgba(2,8,23,0.2)]">
