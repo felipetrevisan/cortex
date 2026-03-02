@@ -49,35 +49,34 @@ const DetailBarChart = ({
 		label: string
 		value: number
 		colorToken: string
-		description?: string
 	}>
 }) => (
 	<div className="space-y-4">
-		{items.map((item) => (
-			<div key={item.label} className="space-y-1.5">
-				<div className="flex items-center justify-between gap-3">
-					<div>
-						<p className="text-sm font-semibold">{item.label}</p>
-						{item.description ? (
-							<p className="text-xs text-muted-foreground">
-								{item.description}
-							</p>
-						) : null}
+		{items.map((item) => {
+			const maturity = classifyMaturity(item.value)
+
+			return (
+				<div key={item.label} className="space-y-1.5">
+					<div className="flex items-center justify-between gap-3">
+						<div>
+							<p className="text-base font-semibold">{item.label}</p>
+							<p className="text-sm text-muted-foreground">{maturity.label}</p>
+						</div>
+						<span className="text-sm font-semibold">{item.value}%</span>
 					</div>
-					<span className="text-sm font-semibold">{item.value}%</span>
+					<div className="h-3 rounded-full bg-secondary/70">
+						<div
+							className="h-full rounded-full transition-all duration-500"
+							style={{
+								width: `${Math.max(0, Math.min(100, item.value))}%`,
+								background: `linear-gradient(90deg, color-mix(in oklch, var(--${item.colorToken}) 88%, white) 0%, var(--${item.colorToken}) 100%)`,
+								boxShadow: `0 0 18px color-mix(in oklch, var(--${item.colorToken}) 28%, transparent)`,
+							}}
+						/>
+					</div>
 				</div>
-				<div className="h-3 rounded-full bg-secondary/70">
-					<div
-						className="h-full rounded-full transition-all duration-500"
-						style={{
-							width: `${Math.max(0, Math.min(100, item.value))}%`,
-							background: `linear-gradient(90deg, color-mix(in oklch, var(--${item.colorToken}) 88%, white) 0%, var(--${item.colorToken}) 100%)`,
-							boxShadow: `0 0 18px color-mix(in oklch, var(--${item.colorToken}) 28%, transparent)`,
-						}}
-					/>
-				</div>
-			</div>
-		))}
+			)
+		})}
 	</div>
 )
 
@@ -322,7 +321,6 @@ export const DiagnosticResultScreen = ({
 				<div className="grid gap-5 xl:grid-cols-[1.6fr_1fr]">
 					<Card className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
 						<CardHeader className="p-6 pb-3">
-							<CardDescription>Gráfico de barras</CardDescription>
 							<CardTitle className="flex items-center gap-2 text-lg">
 								<BarChart3 className="size-4 text-primary" />
 								{result.kind === 'phase1'
@@ -338,7 +336,6 @@ export const DiagnosticResultScreen = ({
 												label: item.title,
 												value: item.value,
 												colorToken: item.colorToken,
-												description: `${item.questionCount} perguntas neste pilar`,
 											}))
 										: result.metrics
 								}
