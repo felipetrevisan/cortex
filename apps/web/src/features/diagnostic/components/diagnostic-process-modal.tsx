@@ -384,7 +384,7 @@ export const DiagnosticProcessModal = ({
 		>
 			<DialogContent
 				showCloseButton={false}
-				className="flex max-h-[92vh] w-full max-w-5xl border-0 bg-transparent p-0 shadow-none backdrop-blur-0"
+				className="flex max-h-[92vh] w-[min(96vw,88rem)] max-w-[88rem] border-0 bg-transparent p-0 shadow-none backdrop-blur-0"
 				onPointerDownOutside={(event) => {
 					if (flow.isSaving) {
 						event.preventDefault()
@@ -436,7 +436,7 @@ export const DiagnosticProcessModal = ({
 
 					<CardContent
 						className={cn(
-							'space-y-6 p-6',
+							'space-y-6 overflow-x-hidden p-6',
 							flow.stage === 'phase2' ||
 								flow.stage === 'phase2-result' ||
 								shouldShowPhase1Instructions ||
