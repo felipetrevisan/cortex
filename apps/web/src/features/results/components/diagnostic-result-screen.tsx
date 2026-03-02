@@ -10,12 +10,14 @@ import {
 	CardTitle,
 } from '@cortex/ui/components/card'
 import {
+	AlertTriangle,
 	ArrowLeft,
 	BarChart3,
 	CheckCircle2,
 	Loader2,
 	PieChart,
 	Sparkles,
+	Trophy,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useActiveNicheAccess } from '@/features/auth/hooks/use-active-niche-access'
@@ -49,6 +51,7 @@ const DetailBarChart = ({
 		label: string
 		value: number
 		colorToken: string
+		description?: string
 	}>
 }) => (
 	<div className="space-y-4">
@@ -61,6 +64,11 @@ const DetailBarChart = ({
 						<div>
 							<p className="text-base font-semibold">{item.label}</p>
 							<p className="text-sm text-muted-foreground">{maturity.label}</p>
+							{item.description ? (
+								<p className="mt-1 text-sm leading-6 text-foreground/78">
+									{item.description}
+								</p>
+							) : null}
 						</div>
 						<span className="text-sm font-semibold">{item.value}%</span>
 					</div>
@@ -259,12 +267,18 @@ export const DiagnosticResultScreen = ({
 							className="rounded-3xl border p-5"
 							style={getPillarOutcomeCardStyle('strong')}
 						>
-							<p
-								className="text-xs uppercase tracking-[0.16em]"
-								style={getPillarOutcomeLabelStyle('strong')}
-							>
-								Pilar Forte
-							</p>
+							<div className="flex items-start justify-between gap-3">
+								<p
+									className="text-xs uppercase tracking-[0.16em]"
+									style={getPillarOutcomeLabelStyle('strong')}
+								>
+									Pilar Forte
+								</p>
+								<Trophy
+									className="size-5 shrink-0"
+									style={getPillarOutcomeLabelStyle('strong')}
+								/>
+							</div>
 							<p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
 								{pillarTitle(result.strongPillar)}
 							</p>
@@ -276,12 +290,18 @@ export const DiagnosticResultScreen = ({
 							className="rounded-3xl border p-5"
 							style={getPillarOutcomeCardStyle('critical')}
 						>
-							<p
-								className="text-xs uppercase tracking-[0.16em]"
-								style={getPillarOutcomeLabelStyle('critical')}
-							>
-								Pilar Crítico
-							</p>
+							<div className="flex items-start justify-between gap-3">
+								<p
+									className="text-xs uppercase tracking-[0.16em]"
+									style={getPillarOutcomeLabelStyle('critical')}
+								>
+									Pilar Crítico
+								</p>
+								<AlertTriangle
+									className="size-5 shrink-0"
+									style={getPillarOutcomeLabelStyle('critical')}
+								/>
+							</div>
 							<p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
 								{pillarTitle(result.criticalPillar)}
 							</p>
@@ -336,6 +356,7 @@ export const DiagnosticResultScreen = ({
 												label: item.title,
 												value: item.value,
 												colorToken: item.colorToken,
+												description: item.summary,
 											}))
 										: result.metrics
 								}
