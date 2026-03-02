@@ -1758,6 +1758,7 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 		isSaving,
 		errorMessage,
 		stage,
+		cycleId: cycle?.id ?? null,
 		cycleNumber: cycle?.cycle_number ?? 1,
 		isReevaluationMode,
 		temporalRules,

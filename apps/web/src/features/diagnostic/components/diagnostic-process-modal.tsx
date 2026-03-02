@@ -24,10 +24,12 @@ import {
 	X,
 } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
+import { useRouter } from 'next/navigation'
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { IconButton } from '@/components/animate-ui/components/buttons/icon'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { getDiagnosticResultPath } from '@/features/results/lib/result-routes'
 import { useDiagnosticProcessFlow } from '../hooks/use-diagnostic-process-flow'
 
 interface DiagnosticProcessModalProps {
@@ -57,7 +59,7 @@ const stageTitleMap: Record<string, string> = {
 	phase1: 'Fase 1 - Diagnóstico estrutural',
 	'phase1-tie': 'Resultado estrutural - Desempate',
 	'phase1-result': 'Resumo Resultado Fase 1',
-	phase2: 'Fase 2 - Diagnóstico refinado',
+	phase2: 'Fase 2 - Diagnóstico Aprofundado',
 	'phase2-result': 'Resumo Resultado Fase 2',
 	'protocol-reflections': 'Protocolo de ação - Reflexões',
 	'protocol-actions': 'Protocolo de ação - Execução',
@@ -231,6 +233,7 @@ export const DiagnosticProcessModal = ({
 	open,
 	onOpenChange,
 }: DiagnosticProcessModalProps) => {
+	const router = useRouter()
 	const flow = useDiagnosticProcessFlow(open)
 	const [resultDetailStage, setResultDetailStage] = useState<
 		'phase1' | 'phase2' | null
@@ -313,6 +316,12 @@ export const DiagnosticProcessModal = ({
 	const isShowingPhase2DetailedResult =
 		flow.stage === 'phase2-result' && resultDetailStage === 'phase2'
 
+	const openDetailedResultPage = (phase: 'phase-1' | 'phase-2') => {
+		if (!flow.cycleId) return
+		onOpenChange(false)
+		router.push(getDiagnosticResultPath(flow.cycleId, phase))
+	}
+
 	return (
 		<Dialog
 			open={open}
@@ -323,7 +332,7 @@ export const DiagnosticProcessModal = ({
 		>
 			<DialogContent
 				showCloseButton={false}
-				className="w-full max-w-3xl border-0 bg-transparent p-0 shadow-none backdrop-blur-0"
+				className="flex max-h-[90vh] w-full max-w-3xl border-0 bg-transparent p-0 shadow-none backdrop-blur-0"
 				onPointerDownOutside={(event) => {
 					if (flow.isSaving) {
 						event.preventDefault()
@@ -335,7 +344,7 @@ export const DiagnosticProcessModal = ({
 					}
 				}}
 			>
-				<Card className="overflow-hidden rounded-3xl border-border/75 bg-card shadow-[0_20px_50px_rgba(2,8,23,0.28)]">
+				<Card className="flex max-h-[90vh] w-full flex-col overflow-hidden rounded-3xl border-border/75 bg-card shadow-[0_20px_50px_rgba(2,8,23,0.28)]">
 					<CardHeader className="border-b border-border/70 bg-gradient-to-r from-primary/8 via-primary/4 to-transparent p-6">
 						<div className="flex items-start justify-between gap-4">
 							<div className="space-y-2">
@@ -373,7 +382,17 @@ export const DiagnosticProcessModal = ({
 						</div>
 					</CardHeader>
 
-					<CardContent className="space-y-6 p-6">
+					<CardContent
+						className={cn(
+							'space-y-6 p-6',
+							flow.stage === 'phase2' ||
+								flow.stage === 'phase2-result' ||
+								(flow.stage === 'phase1-result' &&
+									resultDetailStage === 'phase1')
+								? 'min-h-0 overflow-y-auto pr-4'
+								: '',
+						)}
+					>
 						{flow.isInitializing ? (
 							<div className="grid min-h-[240px] place-items-center">
 								<Loader2 className="size-6 animate-spin text-primary" />
@@ -631,14 +650,23 @@ export const DiagnosticProcessModal = ({
 												</div>
 
 												<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-													<Button
-														variant="outline"
-														className="h-11 rounded-2xl"
-														onClick={() => setResultDetailStage('phase1')}
-													>
-														<Eye className="size-4" />
-														Acessar Resultado Completo
-													</Button>
+													<div className="flex flex-col gap-3 sm:flex-row">
+														<Button
+															variant="outline"
+															className="h-11 rounded-2xl"
+															onClick={() => setResultDetailStage('phase1')}
+														>
+															<Eye className="size-4" />
+															Ver Resumo Expandido
+														</Button>
+														<Button
+															variant="ghost"
+															className="h-11 rounded-2xl"
+															onClick={() => openDetailedResultPage('phase-1')}
+														>
+															Acessar Resultado Completo
+														</Button>
+													</div>
 
 													<Button
 														className="h-11 rounded-2xl"
@@ -727,7 +755,7 @@ export const DiagnosticProcessModal = ({
 													</div>
 													<div className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg">
 														<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-															Índice geral refinado
+															Índice geral aprofundado
 														</p>
 														<p className="mt-1 text-2xl font-bold">
 															{flow.phase2Summary?.generalIndex ?? 0}%
@@ -816,7 +844,7 @@ export const DiagnosticProcessModal = ({
 													</div>
 													<div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
 														<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-															Índice geral refinado
+															Índice geral aprofundado
 														</p>
 														<p className="mt-1 text-2xl font-bold">
 															{flow.phase2Summary?.generalIndex ?? 0}%
@@ -852,14 +880,23 @@ export const DiagnosticProcessModal = ({
 												</div>
 
 												<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-													<Button
-														variant="outline"
-														className="h-11 rounded-2xl"
-														onClick={() => setResultDetailStage('phase2')}
-													>
-														<Eye className="size-4" />
-														Acessar Resultado Completo
-													</Button>
+													<div className="flex flex-col gap-3 sm:flex-row">
+														<Button
+															variant="outline"
+															className="h-11 rounded-2xl"
+															onClick={() => setResultDetailStage('phase2')}
+														>
+															<Eye className="size-4" />
+															Ver Resumo Expandido
+														</Button>
+														<Button
+															variant="ghost"
+															className="h-11 rounded-2xl"
+															onClick={() => openDetailedResultPage('phase-2')}
+														>
+															Acessar Resultado Completo
+														</Button>
+													</div>
 
 													{flow.isReevaluationMode ? (
 														<div className="space-y-3 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4 sm:max-w-sm">

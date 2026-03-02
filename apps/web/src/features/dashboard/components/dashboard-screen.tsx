@@ -23,6 +23,7 @@ import {
 	Rocket,
 } from 'lucide-react'
 import { motion } from 'motion/react'
+import Link from 'next/link'
 import { useState } from 'react'
 import { Reveal } from '@/components/animated-ui/reveal'
 import { UserAvatar } from '@/components/layout/user-avatar'
@@ -37,6 +38,7 @@ import { useActiveNicheAccess } from '@/features/auth/hooks/use-active-niche-acc
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { DiagnosticProcessModal } from '@/features/diagnostic/components/diagnostic-process-modal'
 import { ProfileAvatarModal } from '@/features/profile/components/profile-avatar-modal'
+import { getDiagnosticResultPath } from '@/features/results/lib/result-routes'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { DashboardHeader } from './dashboard-header'
 import { PillarGaugeCard } from './pillar-gauge-card'
@@ -405,6 +407,30 @@ export const DashboardScreen = () => {
 												dias):{' '}
 												{formatDate(item.timeline.newDiagnosticAvailableAt)}
 											</p>
+										</div>
+										<div className="mt-3 flex flex-wrap gap-2">
+											{item.cycle.timeline.phase1CompletedAt ? (
+												<Link
+													href={getDiagnosticResultPath(
+														item.cycle.id,
+														'phase-1',
+													)}
+													className="inline-flex h-8 items-center rounded-xl border border-border bg-background px-3 text-sm font-medium shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
+												>
+													Ver Fase 1
+												</Link>
+											) : null}
+											{item.cycle.timeline.phase2CompletedAt ? (
+												<Link
+													href={getDiagnosticResultPath(
+														item.cycle.id,
+														'phase-2',
+													)}
+													className="inline-flex h-8 items-center rounded-xl border border-border bg-background px-3 text-sm font-medium shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
+												>
+													Ver Fase 2
+												</Link>
+											) : null}
 										</div>
 									</div>
 								))

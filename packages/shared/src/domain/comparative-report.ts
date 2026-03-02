@@ -92,7 +92,7 @@ export const buildComparativeReport = (
 		),
 		toMetric(
 			'phase2',
-			'Índice Refinado',
+			'Índice Aprofundado',
 			current.indexes.phase2General,
 			previous?.indexes.phase2General ?? null,
 		),
