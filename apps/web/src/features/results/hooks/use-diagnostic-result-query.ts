@@ -13,6 +13,7 @@ import { useAuth } from '@/features/auth/components/auth-provider'
 import { useActiveNicheAccess } from '@/features/auth/hooks/use-active-niche-access'
 import {
 	type DiagnosticPhase2QuestionBlueprint,
+	getBlueprintPhase2Questions,
 	useDiagnosticBlueprintQuery,
 } from '@/features/diagnostic/hooks/use-diagnostic-blueprint-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
@@ -398,7 +399,7 @@ export const useDiagnosticResultQuery = (
 				? cycle.highlights.critical
 				: null
 			const phase2Questions = criticalPillar
-				? (blueprintQuery.data?.getPhase2Questions(criticalPillar) ?? [])
+				? getBlueprintPhase2Questions(blueprintQuery.data, criticalPillar)
 				: []
 
 			return {

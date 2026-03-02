@@ -32,6 +32,7 @@ import { safeStorage } from '@/lib/utils/storage'
 import {
 	type DiagnosticPhase1PillarBlueprint,
 	type DiagnosticPhase2QuestionBlueprint,
+	getBlueprintPhase2Questions,
 	useDiagnosticBlueprintQuery,
 } from './use-diagnostic-blueprint-query'
 
@@ -448,7 +449,7 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 		if (!resolvedCriticalPillar || !blueprint) {
 			return [] as DiagnosticPhase2QuestionBlueprint[]
 		}
-		return blueprint.getPhase2Questions(resolvedCriticalPillar)
+		return getBlueprintPhase2Questions(blueprint, resolvedCriticalPillar)
 	}, [blueprint, resolvedCriticalPillar])
 
 	const totalPhase2Questions = phase2Questions.length
@@ -808,7 +809,7 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 			const criticalPillar = baseSummary.criticalPillar
 			if (!criticalPillar) return
 
-			const questions = blueprint.getPhase2Questions(criticalPillar)
+			const questions = getBlueprintPhase2Questions(blueprint, criticalPillar)
 			const phase2Extracted = extractPhase2Scores(
 				questions,
 				phase2Merged,

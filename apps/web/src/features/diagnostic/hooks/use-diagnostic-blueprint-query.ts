@@ -56,7 +56,11 @@ export interface DiagnosticBlueprint {
 	nicheName: string
 	phase1Pillars: DiagnosticPhase1PillarBlueprint[]
 	totalPhase1Questions: number
-	getPhase2Questions: (pillar: PillarKey) => DiagnosticPhase2QuestionBlueprint[]
+	phase2QuestionsByPillar: Record<
+		PillarKey,
+		DiagnosticPhase2QuestionBlueprint[]
+	>
+	phase2StateQuestions: DiagnosticPhase2QuestionBlueprint[]
 	protocolReflections: string[]
 	protocolActionBlocks: DiagnosticProtocolActionBlockBlueprint[]
 }
@@ -80,22 +84,49 @@ const fallbackBlueprint: DiagnosticBlueprint = {
 		(total, pillar) => total + pillar.questions.length,
 		0,
 	),
-	getPhase2Questions: (pillar) => [
-		...getFallbackPhase2TechnicalQuestions(pillar).map((question) => ({
-			phaseId: `fallback:phase2:technical:${pillar}`,
+	phase2QuestionsByPillar: {
+		clarity: getFallbackPhase2TechnicalQuestions('clarity').map((question) => ({
+			phaseId: 'fallback:phase2:technical:clarity',
 			questionType: 'technical' as const,
 			questionNumber: question.questionNumber,
 			title: question.title,
 			options: fallbackOptions,
 		})),
-		...PHASE2_STATE_QUESTIONS.map((question) => ({
-			phaseId: 'fallback:phase2:state',
-			questionType: 'state' as const,
-			questionNumber: question.questionNumber,
-			title: question.title,
-			options: fallbackOptions,
-		})),
-	],
+		structure: getFallbackPhase2TechnicalQuestions('structure').map(
+			(question) => ({
+				phaseId: 'fallback:phase2:technical:structure',
+				questionType: 'technical' as const,
+				questionNumber: question.questionNumber,
+				title: question.title,
+				options: fallbackOptions,
+			}),
+		),
+		execution: getFallbackPhase2TechnicalQuestions('execution').map(
+			(question) => ({
+				phaseId: 'fallback:phase2:technical:execution',
+				questionType: 'technical' as const,
+				questionNumber: question.questionNumber,
+				title: question.title,
+				options: fallbackOptions,
+			}),
+		),
+		emotional: getFallbackPhase2TechnicalQuestions('emotional').map(
+			(question) => ({
+				phaseId: 'fallback:phase2:technical:emotional',
+				questionType: 'technical' as const,
+				questionNumber: question.questionNumber,
+				title: question.title,
+				options: fallbackOptions,
+			}),
+		),
+	},
+	phase2StateQuestions: PHASE2_STATE_QUESTIONS.map((question) => ({
+		phaseId: 'fallback:phase2:state',
+		questionType: 'state' as const,
+		questionNumber: question.questionNumber,
+		title: question.title,
+		options: fallbackOptions,
+	})),
 	protocolReflections: [...PROTOCOL_REFLECTION_PROMPTS],
 	protocolActionBlocks: [...PROTOCOL_ACTION_BLOCKS],
 }
@@ -120,6 +151,9 @@ export const useDiagnosticBlueprintQuery = () => {
 			activeNiche?.nicheId ?? 'no-niche',
 		),
 		enabled: Boolean(activeNiche?.nicheId),
+		meta: {
+			persist: false,
+		},
 		queryFn: async (): Promise<DiagnosticBlueprint> => {
 			try {
 				if (!activeNiche?.nicheId) {
@@ -316,10 +350,8 @@ export const useDiagnosticBlueprintQuery = () => {
 						(total, pillar) => total + pillar.questions.length,
 						0,
 					),
-					getPhase2Questions: (pillar) => [
-						...phase2TechnicalByPillar[pillar],
-						...phase2StateQuestions,
-					],
+					phase2QuestionsByPillar: phase2TechnicalByPillar,
+					phase2StateQuestions,
 					protocolReflections:
 						protocolReflections.length > 0
 							? protocolReflections
@@ -334,4 +366,15 @@ export const useDiagnosticBlueprintQuery = () => {
 			}
 		},
 	})
+}
+
+export const getBlueprintPhase2Questions = (
+	blueprint: DiagnosticBlueprint | undefined,
+	pillar: PillarKey,
+): DiagnosticPhase2QuestionBlueprint[] => {
+	if (!blueprint) return []
+	return [
+		...(blueprint.phase2QuestionsByPillar[pillar] ?? []),
+		...blueprint.phase2StateQuestions,
+	]
 }

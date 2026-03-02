@@ -59,6 +59,10 @@ export const AppProviders = ({ children }: { children: React.ReactNode }) => {
 		setIsMounted(true)
 	}, [])
 
+	useEffect(() => {
+		window.localStorage.removeItem('cortex-query-cache')
+	}, [])
+
 	if (!isMounted) {
 		return (
 			<ThemeProvider
