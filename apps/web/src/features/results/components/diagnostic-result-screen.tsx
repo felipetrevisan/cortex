@@ -83,11 +83,9 @@ const DetailBarChart = ({
 
 const DetailDonutChart = ({
 	title,
-	description,
 	segments,
 }: {
 	title: string
-	description: string
 	segments: Array<{
 		label: string
 		value: number
@@ -95,14 +93,13 @@ const DetailDonutChart = ({
 	}>
 }) => (
 	<Card className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
-		<CardHeader className="p-6 pb-3">
-			<CardDescription>{description}</CardDescription>
+		<CardHeader className="p-6 pb-2">
 			<CardTitle className="flex items-center gap-2 text-lg">
 				<PieChart className="size-4 text-primary" />
 				{title}
 			</CardTitle>
 		</CardHeader>
-		<CardContent className="flex flex-col gap-6 p-6 pt-2 lg:flex-row lg:items-center">
+		<CardContent className="grid place-items-center p-6 pt-2">
 			<div
 				className="relative mx-auto size-44 rounded-full"
 				style={{
@@ -115,24 +112,6 @@ const DetailDonutChart = ({
 				}}
 			>
 				<div className="absolute inset-5 rounded-full bg-card/95 backdrop-blur-lg" />
-			</div>
-
-			<div className="grid flex-1 gap-3">
-				{segments.map((segment) => (
-					<div
-						key={segment.label}
-						className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/55 px-4 py-3"
-					>
-						<div className="flex items-center gap-3">
-							<span
-								className="size-3 rounded-full"
-								style={{ background: `var(--${segment.colorToken})` }}
-							/>
-							<span className="text-sm font-medium">{segment.label}</span>
-						</div>
-						<span className="text-sm font-semibold">{segment.value}%</span>
-					</div>
-				))}
 			</div>
 		</CardContent>
 	</Card>
@@ -340,7 +319,7 @@ export const DiagnosticResultScreen = ({
 					</Card>
 				)}
 
-				<div className="grid gap-5 xl:grid-cols-2">
+				<div className="grid gap-5 xl:grid-cols-[1.6fr_1fr]">
 					<Card className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
 						<CardHeader className="p-6 pb-3">
 							<CardDescription>Gráfico de barras</CardDescription>
@@ -372,11 +351,6 @@ export const DiagnosticResultScreen = ({
 							result.kind === 'phase1'
 								? 'Distribuição estrutural'
 								: 'Peso relativo dos índices'
-						}
-						description={
-							result.kind === 'phase1'
-								? 'Comparação proporcional entre os quatro pilares.'
-								: 'Relação entre técnica e estado atual na leitura aprofundada.'
 						}
 						segments={result.donutSegments}
 					/>
