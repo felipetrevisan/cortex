@@ -63,7 +63,9 @@ const DetailBarChart = ({
 					<div className="flex items-center justify-between gap-3">
 						<div>
 							<p className="text-base font-semibold">{item.label}</p>
-							<p className="text-sm text-muted-foreground">{maturity.label}</p>
+							<p className="text-sm text-muted-foreground">
+								Status: {maturity.label}
+							</p>
 							{item.description ? (
 								<p className="mt-1 text-sm leading-6 text-foreground/78">
 									{item.description}
@@ -267,17 +269,19 @@ export const DiagnosticResultScreen = ({
 							className="rounded-3xl border p-5"
 							style={getPillarOutcomeCardStyle('strong')}
 						>
-							<div className="flex items-start justify-between gap-3">
+							<div className="flex items-center justify-between gap-4">
 								<p
 									className="text-xs uppercase tracking-[0.16em]"
 									style={getPillarOutcomeLabelStyle('strong')}
 								>
 									Pilar Forte
 								</p>
-								<Trophy
-									className="size-5 shrink-0"
-									style={getPillarOutcomeLabelStyle('strong')}
-								/>
+								<div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-current/20 bg-background/40">
+									<Trophy
+										className="size-7"
+										style={getPillarOutcomeLabelStyle('strong')}
+									/>
+								</div>
 							</div>
 							<p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
 								{pillarTitle(result.strongPillar)}
@@ -290,17 +294,19 @@ export const DiagnosticResultScreen = ({
 							className="rounded-3xl border p-5"
 							style={getPillarOutcomeCardStyle('critical')}
 						>
-							<div className="flex items-start justify-between gap-3">
+							<div className="flex items-center justify-between gap-4">
 								<p
 									className="text-xs uppercase tracking-[0.16em]"
 									style={getPillarOutcomeLabelStyle('critical')}
 								>
 									Pilar Crítico
 								</p>
-								<AlertTriangle
-									className="size-5 shrink-0"
-									style={getPillarOutcomeLabelStyle('critical')}
-								/>
+								<div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-current/20 bg-background/40">
+									<AlertTriangle
+										className="size-7"
+										style={getPillarOutcomeLabelStyle('critical')}
+									/>
+								</div>
 							</div>
 							<p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
 								{pillarTitle(result.criticalPillar)}
