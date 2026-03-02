@@ -224,13 +224,13 @@ export const DiagnosticResultScreen = ({
 								Resultado Completo {data.phaseLabel}
 							</h1>
 							<p className="max-w-3xl text-sm text-muted-foreground">
-								Leitura aprofundada do diagnóstico com interpretação,
-								indicadores visuais e pontos prioritários de ação.
+								Leitura do diagnóstico com interpretação, indicadores visuais e
+								pontos prioritários de ação.
 							</p>
 						</div>
 					</div>
 					<Card className="min-w-[260px] rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg">
-						<CardContent className="space-y-1 p-5">
+						<CardContent className="space-y-1 p-5 text-center">
 							<p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
 								Concluído em
 							</p>
@@ -285,10 +285,13 @@ export const DiagnosticResultScreen = ({
 								className="text-xs uppercase tracking-[0.16em]"
 								style={getPillarOutcomeLabelStyle('strong')}
 							>
-								Forte
+								Pilar Forte
 							</p>
 							<p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
 								{pillarTitle(result.strongPillar)}
+							</p>
+							<p className="mt-2 text-sm leading-6 text-foreground/78">
+								Este pilar sustenta a base mais consistente do ciclo atual.
 							</p>
 						</div>
 						<div
@@ -299,10 +302,13 @@ export const DiagnosticResultScreen = ({
 								className="text-xs uppercase tracking-[0.16em]"
 								style={getPillarOutcomeLabelStyle('critical')}
 							>
-								Crítico
+								Pilar Crítico
 							</p>
 							<p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
 								{pillarTitle(result.criticalPillar)}
+							</p>
+							<p className="mt-2 text-sm leading-6 text-foreground/78">
+								Este pilar concentra a principal vulnerabilidade do ciclo atual.
 							</p>
 						</div>
 					</div>
