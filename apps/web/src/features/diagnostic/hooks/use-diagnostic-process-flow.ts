@@ -1714,6 +1714,8 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 	const protocolActionBlocks = blueprint?.protocolActionBlocks?.length
 		? blueprint.protocolActionBlocks
 		: []
+	const totalProtocolReflections =
+		protocolReflectionPrompts.length > 0 ? protocolReflectionPrompts.length : 5
 	const totalProtocolActions = useMemo(() => {
 		if (protocolActionBlocks.length === 0) return 9
 		return protocolActionBlocks.reduce(
@@ -1723,12 +1725,16 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 	}, [protocolActionBlocks])
 
 	const protocolCompletion = useMemo(() => {
-		const completedActions = [
+		const completedProtocolActions = [
 			...protocol.block1Actions,
 			...protocol.block2Actions,
 			...protocol.block3Actions,
 		].filter(Boolean).length
-		const totalActions = totalProtocolActions
+		const completedReflections = protocol.reflections.filter(
+			(reflection) => reflection.trim().length > 0,
+		).length
+		const completedActions = completedProtocolActions + completedReflections
+		const totalActions = totalProtocolActions + totalProtocolReflections
 		return {
 			completedActions,
 			totalActions,
@@ -1741,7 +1747,9 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 		protocol.block1Actions,
 		protocol.block2Actions,
 		protocol.block3Actions,
+		protocol.reflections,
 		totalProtocolActions,
+		totalProtocolReflections,
 	])
 
 	const currentPhase1Options = currentPhase1Pillar?.options ?? []

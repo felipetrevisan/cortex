@@ -137,7 +137,7 @@ export const useDiagnosticHistoryQuery = () => {
 				const protocol = protocolsByCycle.get(cycle.id)
 				const progress = protocol
 					? toStrategicPlanProgress(protocol)
-					: { completedActions: 0, totalActions: 9, ratioLabel: '0 / 9' }
+					: { completedActions: 0, totalActions: 14, ratioLabel: '0 / 14' }
 				const temporalRules = computeDiagnosticTemporalRules({
 					phase1CompletedAt: cycle.timeline.phase1CompletedAt,
 					protocolCompletedAt: cycle.timeline.protocolCompletedAt,

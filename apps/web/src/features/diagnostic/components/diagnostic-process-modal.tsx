@@ -29,6 +29,7 @@ import { type CSSProperties, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { IconButton } from '@/components/animate-ui/components/buttons/icon'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
 import { getDiagnosticResultPath } from '@/features/results/lib/result-routes'
 import { useDiagnosticProcessFlow } from '../hooks/use-diagnostic-process-flow'
 
@@ -294,6 +295,26 @@ export const DiagnosticProcessModal = ({
 	}, [open])
 
 	const progressPercent = useMemo(() => {
+		if (pendingAnswerKey && flow.stage === 'phase1') {
+			const nextAnsweredCount = Math.min(
+				flow.phase1.totalQuestions,
+				flow.phase1.answeredCount + 1,
+			)
+			return flow.phase1.totalQuestions === 0
+				? 0
+				: Math.round((nextAnsweredCount / flow.phase1.totalQuestions) * 100)
+		}
+
+		if (pendingAnswerKey && flow.stage === 'phase2') {
+			const nextAnsweredCount = Math.min(
+				flow.phase2.totalQuestions,
+				flow.phase2.answeredCount + 1,
+			)
+			return flow.phase2.totalQuestions === 0
+				? 0
+				: Math.round((nextAnsweredCount / flow.phase2.totalQuestions) * 100)
+		}
+
 		if (
 			flow.stage === 'phase1' ||
 			flow.stage === 'phase1-tie' ||
@@ -316,9 +337,14 @@ export const DiagnosticProcessModal = ({
 		return 100
 	}, [
 		flow.phase1Progress,
+		flow.phase1.answeredCount,
+		flow.phase1.totalQuestions,
 		flow.phase2Progress,
+		flow.phase2.answeredCount,
+		flow.phase2.totalQuestions,
 		flow.protocolCompletion.percent,
 		flow.stage,
+		pendingAnswerKey,
 	])
 
 	const onSubmitReflections = reflectionForm.handleSubmit(async (values) => {
@@ -327,6 +353,12 @@ export const DiagnosticProcessModal = ({
 
 	const progressColorToken = resolveProgressColorToken(flow)
 	const stageTitle = resolveStageTitle(flow, resultDetailStage)
+	const phase1GeneralMaturity = classifyMaturity(
+		flow.phase1Summary?.generalIndex ?? 0,
+	)
+	const phase2GeneralMaturity = classifyMaturity(
+		flow.phase2Summary?.generalIndex ?? 0,
+	)
 	const phase1HighlightCards = [
 		{
 			id: 'strong',
@@ -508,7 +540,7 @@ export const DiagnosticProcessModal = ({
 
 								{flow.stage === 'phase1' && !shouldShowPhase1Instructions ? (
 									<div className="space-y-6">
-										<div className="space-y-2">
+										<div className="mx-auto max-w-4xl space-y-2 text-center">
 											<p className="text-xl font-medium leading-relaxed">
 												{flow.phase1.currentQuestion}
 											</p>
@@ -640,9 +672,11 @@ export const DiagnosticProcessModal = ({
 														<p className="mt-2 text-4xl font-bold">
 															{flow.phase1Summary?.generalIndex ?? 0}%
 														</p>
+														<p className="mt-2 text-sm font-semibold">
+															{phase1GeneralMaturity.label}
+														</p>
 														<p className="mt-3 text-sm text-muted-foreground">
-															Leitura consolidada dos quatro pilares que
-															sustentam a conclusão do projeto.
+															{phase1GeneralMaturity.description}
 														</p>
 													</div>
 
@@ -853,7 +887,7 @@ export const DiagnosticProcessModal = ({
 
 								{flow.stage === 'phase2' && !shouldShowPhase2Instructions ? (
 									<div className="space-y-6">
-										<div className="space-y-2">
+										<div className="mx-auto max-w-4xl space-y-2 text-center">
 											<p className="text-xl font-medium leading-relaxed">
 												{flow.phase2.currentQuestion?.title}
 											</p>
@@ -935,6 +969,13 @@ export const DiagnosticProcessModal = ({
 														<p className="mt-1 text-2xl font-bold">
 															{flow.phase2Summary?.technicalIndex ?? 0}%
 														</p>
+														<p className="mt-2 text-xs text-muted-foreground">
+															{
+																classifyMaturity(
+																	flow.phase2Summary?.technicalIndex ?? 0,
+																).label
+															}
+														</p>
 													</div>
 													<div className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg">
 														<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
@@ -943,6 +984,13 @@ export const DiagnosticProcessModal = ({
 														<p className="mt-1 text-2xl font-bold">
 															{flow.phase2Summary?.stateIndex ?? 0}%
 														</p>
+														<p className="mt-2 text-xs text-muted-foreground">
+															{
+																classifyMaturity(
+																	flow.phase2Summary?.stateIndex ?? 0,
+																).label
+															}
+														</p>
 													</div>
 													<div className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg">
 														<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
@@ -950,6 +998,9 @@ export const DiagnosticProcessModal = ({
 														</p>
 														<p className="mt-1 text-2xl font-bold">
 															{flow.phase2Summary?.generalIndex ?? 0}%
+														</p>
+														<p className="mt-2 text-xs text-muted-foreground">
+															{phase2GeneralMaturity.label}
 														</p>
 													</div>
 												</div>
@@ -1024,6 +1075,13 @@ export const DiagnosticProcessModal = ({
 														<p className="mt-1 text-2xl font-bold">
 															{flow.phase2Summary?.technicalIndex ?? 0}%
 														</p>
+														<p className="mt-2 text-xs text-muted-foreground">
+															{
+																classifyMaturity(
+																	flow.phase2Summary?.technicalIndex ?? 0,
+																).label
+															}
+														</p>
 													</div>
 													<div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
 														<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
@@ -1032,6 +1090,13 @@ export const DiagnosticProcessModal = ({
 														<p className="mt-1 text-2xl font-bold">
 															{flow.phase2Summary?.stateIndex ?? 0}%
 														</p>
+														<p className="mt-2 text-xs text-muted-foreground">
+															{
+																classifyMaturity(
+																	flow.phase2Summary?.stateIndex ?? 0,
+																).label
+															}
+														</p>
 													</div>
 													<div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
 														<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
@@ -1039,6 +1104,9 @@ export const DiagnosticProcessModal = ({
 														</p>
 														<p className="mt-1 text-2xl font-bold">
 															{flow.phase2Summary?.generalIndex ?? 0}%
+														</p>
+														<p className="mt-2 text-xs text-muted-foreground">
+															{phase2GeneralMaturity.label}
 														</p>
 													</div>
 												</div>
@@ -1138,10 +1206,11 @@ export const DiagnosticProcessModal = ({
 													>
 														{prompt}
 													</label>
-													<textarea
+													<Textarea
 														id={`reflection-${index}`}
 														rows={3}
-														className="w-full resize-none rounded-2xl border border-border/70 bg-background px-3 py-2 text-sm outline-none ring-0 transition focus:border-primary"
+														placeholder="Descreva sua reflexão aqui..."
+														className="resize-none bg-background/80"
 														{...reflectionForm.register(`reflections.${index}`)}
 													/>
 												</div>

@@ -51,15 +51,21 @@ const getPhase1OverviewText = (input: {
 		return 'O diagnóstico estrutural ainda exige leitura complementar para consolidar o contraste entre força e vulnerabilidade.'
 	}
 
-	if (input.generalIndex <= 40) {
-		return `O projeto apresenta risco estrutural elevado. ${pillarTitle(input.criticalPillar)} é hoje o principal gargalo, enquanto ${pillarTitle(input.strongPillar)} sustenta a base mais estável.`
+	const maturity = classifyMaturity(input.generalIndex)
+
+	if (maturity.level === 'critico') {
+		return `O projeto apresenta condição estrutural crítica. ${pillarTitle(input.criticalPillar)} é hoje o principal gargalo, enquanto ${pillarTitle(input.strongPillar)} sustenta a base mais estável.`
 	}
 
-	if (input.generalIndex <= 70) {
-		return `A estrutura atual é funcional, mas instável. ${pillarTitle(input.criticalPillar)} precisa de reforço para que ${pillarTitle(input.strongPillar)} consiga sustentar avanço consistente.`
+	if (maturity.level === 'instavel') {
+		return `A estrutura atual está instável. ${pillarTitle(input.criticalPillar)} precisa de reforço para que ${pillarTitle(input.strongPillar)} consiga sustentar avanço consistente.`
 	}
 
-	return `A base estrutural está sólida. ${pillarTitle(input.strongPillar)} opera como vantagem clara, enquanto ${pillarTitle(input.criticalPillar)} concentra os ajustes finos para ampliar previsibilidade e conclusão.`
+	if (maturity.level === 'funcional') {
+		return `A base estrutural já é funcional. ${pillarTitle(input.strongPillar)} ajuda a manter o avanço, mas ${pillarTitle(input.criticalPillar)} ainda precisa de ajustes para ganhar previsibilidade.`
+	}
+
+	return `A base estrutural está sólida. ${pillarTitle(input.strongPillar)} opera como vantagem clara, enquanto ${pillarTitle(input.criticalPillar)} concentra apenas ajustes finos para ampliar previsibilidade e conclusão.`
 }
 
 const getPhase2OverviewText = (input: {
@@ -75,7 +81,9 @@ const getPhase2OverviewText = (input: {
 		return `A leitura aprofundada de ${pillar} não identificou pontos críticos imediatos. O foco agora é transformar consistência em ritmo de execução.`
 	}
 
-	if (input.generalIndex <= 40) {
+	const maturity = classifyMaturity(input.generalIndex)
+
+	if (maturity.level === 'critico') {
 		return `${pillar} segue com risco refinado elevado. Há ${input.criticalPointsCount} ponto(s) crítico(s) comprometendo a capacidade de concluir com estabilidade.`
 	}
 

@@ -309,10 +309,11 @@ export const DashboardScreen = () => {
 										Math.max(1, viewModel.strategicTotal)) *
 									100
 								}
-								indicatorClassName="bg-primary"
+								indicatorClassName="bg-orange-500 dark:bg-orange-400"
 							/>
 							<p className="text-sm text-muted-foreground">
-								Progresso consolidado do protocolo adaptativo em andamento.
+								Progresso consolidado das 5 reflexões e 9 ações do plano de
+								ação.
 							</p>
 						</CardContent>
 					</Card>

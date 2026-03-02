@@ -24,6 +24,16 @@ export interface StrategicPlanProgress {
 	ratioLabel: string
 }
 
+const DEFAULT_PROTOCOL_REFLECTION_TOTAL = 5
+
+const countCompletedReflections = (input: Json | null): number => {
+	if (!Array.isArray(input)) return 0
+
+	return input.filter(
+		(value) => typeof value === 'string' && value.trim().length > 0,
+	).length
+}
+
 const sanitizeActionList = (input: boolean[] | null): boolean[] => {
 	if (!Array.isArray(input)) return []
 	return input.map((value) => Boolean(value))
@@ -55,14 +65,18 @@ export const toStrategicPlanProgress = (
 		model.blockActions.block2,
 		model.blockActions.block3,
 	]
-	const totalActions = actionLists.reduce(
+	const totalProtocolActions = actionLists.reduce(
 		(total, current) => total + current.length,
 		0,
 	)
-	const completedActions = actionLists.reduce(
+	const completedProtocolActions = actionLists.reduce(
 		(total, current) => total + current.filter(Boolean).length,
 		0,
 	)
+	const completedReflections = countCompletedReflections(model.reflections)
+	const totalActions =
+		totalProtocolActions + DEFAULT_PROTOCOL_REFLECTION_TOTAL
+	const completedActions = completedProtocolActions + completedReflections
 
 	return {
 		completedActions,

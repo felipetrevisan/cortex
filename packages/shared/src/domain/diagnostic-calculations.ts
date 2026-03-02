@@ -3,7 +3,7 @@ import type { PillarKey } from '../constants/pillars'
 export const PHASE_SCORE_MIN = 1
 export const PHASE_SCORE_MAX = 6
 
-export type MaturityLevel = 'critico' | 'atencao' | 'consistente' | 'forte'
+export type MaturityLevel = 'critico' | 'instavel' | 'funcional' | 'solido'
 
 export interface MaturityClassification {
 	level: MaturityLevel
@@ -67,7 +67,9 @@ const resolveCandidates = (
 }
 
 export const classifyMaturity = (percent: number): MaturityClassification => {
-	if (percent <= 40) {
+	const value = Math.max(0, Math.min(100, percent))
+
+	if (value <= 39) {
 		return {
 			level: 'critico',
 			label: 'Crítico',
@@ -76,26 +78,28 @@ export const classifyMaturity = (percent: number): MaturityClassification => {
 		}
 	}
 
-	if (percent <= 60) {
+	if (value <= 59) {
 		return {
-			level: 'atencao',
-			label: 'Atenção',
-			description: 'Há fragilidade relevante. Priorize ajustes estruturais.',
+			level: 'instavel',
+			label: 'Instável',
+			description:
+				'Há fragilidade relevante. O avanço existe, mas ainda oscila com facilidade.',
 		}
 	}
 
-	if (percent <= 80) {
+	if (value <= 79) {
 		return {
-			level: 'consistente',
-			label: 'Consistente',
-			description: 'Base funcional. Foque em consistência para ganhar tração.',
+			level: 'funcional',
+			label: 'Funcional',
+			description:
+				'A base já funciona. O foco agora é consolidar consistência e previsibilidade.',
 		}
 	}
 
 	return {
-		level: 'forte',
-		label: 'Forte',
-		description: 'Pilar maduro com boa capacidade de sustentação.',
+		level: 'solido',
+		label: 'Sólido',
+		description: 'Pilar maduro, estável e com boa capacidade de sustentação.',
 	}
 }
 

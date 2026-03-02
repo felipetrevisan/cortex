@@ -101,7 +101,7 @@ export const DashboardHeader = ({
 						: 'cortex-container',
 				)}
 			>
-				<AppLogo variant="premium" />
+				<AppLogo size="sm" />
 
 				<div className="flex items-center gap-2 md:gap-3">
 					<OfflinePill />
@@ -110,7 +110,7 @@ export const DashboardHeader = ({
 						<DropdownMenuTrigger asChild>
 							<button
 								type="button"
-								className="group inline-flex max-w-[240px] items-center gap-2 rounded-full border border-border/70 bg-card/70 px-2.5 py-1.5 text-sm text-foreground shadow-[0_6px_18px_rgba(2,8,23,0.08)] transition hover:bg-accent/60"
+								className="group inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-1.5 py-1.5 text-sm text-foreground shadow-[0_6px_18px_rgba(2,8,23,0.08)] transition hover:bg-accent/60 md:max-w-[240px] md:px-2.5"
 							>
 								<UserAvatar
 									name={name}
@@ -118,13 +118,19 @@ export const DashboardHeader = ({
 									size="sm"
 									className="size-6 border-border/60"
 								/>
-								<span className="truncate text-[13px] font-medium">{name}</span>
-								<ChevronDown className="size-3.5 shrink-0 text-muted-foreground transition group-data-[state=open]:rotate-180" />
+								<span className="hidden truncate text-[13px] font-medium md:block">
+									{name}
+								</span>
+								<ChevronDown className="hidden size-3.5 shrink-0 text-muted-foreground transition group-data-[state=open]:rotate-180 md:block" />
 							</button>
 						</DropdownMenuTrigger>
 
 						<AnimatedDropdownContent align="end" className="w-56">
 							<DropdownMenuLabel>Menu da Conta</DropdownMenuLabel>
+							<div className="px-3 py-2">
+								<p className="text-sm font-semibold text-foreground">{name}</p>
+							</div>
+							<DropdownMenuSeparator />
 
 							{menuItems.map((item) => {
 								const Icon = item.icon

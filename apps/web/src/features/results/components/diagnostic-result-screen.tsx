@@ -1,5 +1,7 @@
 'use client'
 
+import { PILLARS, type PillarKey } from '@cortex/shared/constants/pillars'
+import { classifyMaturity } from '@cortex/shared/domain/diagnostic-calculations'
 import {
 	Card,
 	CardContent,
@@ -35,6 +37,27 @@ const formatDate = (value: Date | null): string => {
 	return new Intl.DateTimeFormat('pt-BR', {
 		dateStyle: 'long',
 	}).format(value)
+}
+
+const getPillarColorToken = (pillar: PillarKey | null) =>
+	PILLARS.find((item) => item.key === pillar)?.colorToken ?? 'primary'
+
+const getPillarCardStyle = (pillar: PillarKey | null) => {
+	const colorToken = getPillarColorToken(pillar)
+
+	return {
+		borderColor: `color-mix(in oklch, var(--${colorToken}) 40%, transparent)`,
+		background: `linear-gradient(145deg, color-mix(in oklch, var(--${colorToken}) 16%, var(--card)) 0%, color-mix(in oklch, var(--${colorToken}) 6%, var(--card)) 100%)`,
+		boxShadow: `0 0 24px color-mix(in oklch, var(--${colorToken}) 18%, transparent)`,
+	}
+}
+
+const getPillarLabelStyle = (pillar: PillarKey | null) => {
+	const colorToken = getPillarColorToken(pillar)
+
+	return {
+		color: `color-mix(in oklch, var(--${colorToken}) 78%, var(--foreground))`,
+	}
 }
 
 const DetailBarChart = ({
@@ -189,6 +212,7 @@ export const DiagnosticResultScreen = ({
 
 	const { data } = resultQuery
 	const result = data.result
+	const generalMaturity = classifyMaturity(result.generalIndex)
 
 	return (
 		<main className="min-h-dvh pb-12">
@@ -261,27 +285,56 @@ export const DiagnosticResultScreen = ({
 										Índice principal
 									</p>
 									<p className="mt-2 text-4xl font-bold">
-										{result.kind === 'phase1'
-											? result.generalIndex
-											: result.generalIndex}
-										%
+										{result.generalIndex}%
+									</p>
+									<p className="mt-2 text-sm font-semibold text-foreground">
+										{generalMaturity.label}
+									</p>
+									<p className="mt-1 text-sm text-muted-foreground">
+										{generalMaturity.description}
 									</p>
 								</CardContent>
 							</Card>
 							{result.kind === 'phase1' ? (
-								<Card className="rounded-3xl border-border/70 bg-background/60 backdrop-blur-lg">
-									<CardContent className="space-y-2 p-5">
-										<p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-											Pilares-chave
-										</p>
-										<p className="text-sm font-semibold">
-											Forte: {pillarTitle(result.strongPillar)}
-										</p>
-										<p className="text-sm font-semibold">
-											Crítico: {pillarTitle(result.criticalPillar)}
-										</p>
-									</CardContent>
-								</Card>
+								<div className="grid gap-3">
+									<Card className="rounded-3xl border-border/70 bg-background/60 backdrop-blur-lg">
+										<CardContent className="space-y-2 p-5">
+											<p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+												Pilares-chave
+											</p>
+											<div className="grid gap-3">
+												<div
+													className="rounded-2xl border p-4"
+													style={getPillarCardStyle(result.strongPillar)}
+												>
+													<p
+														className="text-xs uppercase tracking-[0.16em]"
+														style={getPillarLabelStyle(result.strongPillar)}
+													>
+														Forte
+													</p>
+													<p className="mt-2 text-lg font-semibold">
+														{pillarTitle(result.strongPillar)}
+													</p>
+												</div>
+												<div
+													className="rounded-2xl border p-4"
+													style={getPillarCardStyle(result.criticalPillar)}
+												>
+													<p
+														className="text-xs uppercase tracking-[0.16em]"
+														style={getPillarLabelStyle(result.criticalPillar)}
+													>
+														Crítico
+													</p>
+													<p className="mt-2 text-lg font-semibold">
+														{pillarTitle(result.criticalPillar)}
+													</p>
+												</div>
+											</div>
+										</CardContent>
+									</Card>
+								</div>
 							) : (
 								<Card className="rounded-3xl border-border/70 bg-background/60 backdrop-blur-lg">
 									<CardContent className="space-y-2 p-5">

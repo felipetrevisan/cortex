@@ -1,5 +1,6 @@
 'use client'
 
+import { classifyMaturity } from '@cortex/shared/domain/diagnostic-calculations'
 import {
 	Card,
 	CardContent,
@@ -17,19 +18,13 @@ interface PillarGaugeCardProps {
 	colorToken: string
 }
 
-const getPillarStatusLabel = (value: number) => {
-	if (value <= 40) return 'Crítico'
-	if (value <= 70) return 'Instável'
-	return 'Sólido'
-}
-
 export const PillarGaugeCard = ({
 	title,
 	value,
 	colorToken,
 }: PillarGaugeCardProps) => {
 	const gaugeValue = Math.max(0, Math.min(100, value))
-	const statusLabel = getPillarStatusLabel(gaugeValue)
+	const statusLabel = classifyMaturity(gaugeValue).label
 	const radius = 52
 	const circumference = Math.PI * radius
 	const dashOffset = circumference * (1 - gaugeValue / 100)
