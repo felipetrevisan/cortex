@@ -309,11 +309,12 @@ export const DashboardScreen = () => {
 										Math.max(1, viewModel.strategicTotal)) *
 									100
 								}
+								className="h-3 bg-orange-100/90 shadow-[inset_0_0_0_1px_rgba(251,146,60,0.18)] dark:bg-orange-950/45 dark:shadow-[inset_0_0_0_1px_rgba(251,146,60,0.22)]"
 								indicatorClassName="bg-orange-500 dark:bg-orange-400"
 							/>
 							<p className="text-sm text-muted-foreground">
-								Progresso consolidado das 5 reflexões e 9 ações do plano de
-								ação.
+								Progresso consolidado das 5 perguntas textuais e 9 ações do
+								plano de ação.
 							</p>
 						</CardContent>
 					</Card>
