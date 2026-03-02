@@ -29,6 +29,8 @@ export interface DiagnosticHistoryItem {
 		reeval45Countdown: string
 		reeval45AuditMessage: string
 		newDiagnosticAvailableAt: Date | null
+		phase2WindowDays: number
+		newCycleWindowDays: number
 	}
 }
 
@@ -140,6 +142,8 @@ export const useDiagnosticHistoryQuery = () => {
 					phase1CompletedAt: cycle.timeline.phase1CompletedAt,
 					protocolCompletedAt: cycle.timeline.protocolCompletedAt,
 					reeval45CompletedAt: cycle.timeline.reeval45CompletedAt,
+					phase2ReevaluationDays: activeNiche.phase2ReevaluationDays,
+					newStructuralDiagnosisDays: activeNiche.newCycleDays,
 				})
 
 				return {
@@ -165,10 +169,12 @@ export const useDiagnosticHistoryQuery = () => {
 							? temporalRules.phase2Reevaluation.message
 							: 'Reavaliação liberada',
 						reeval45AuditMessage: !cycle.timeline.protocolCompletedAt
-							? 'Reavaliação Fase 2 disponível após conclusão do protocolo.'
+							? `Reavaliação Fase 2 disponível em ${activeNiche.phase2ReevaluationDays} dias, após concluir o protocolo.`
 							: `Reavaliação Fase 2 disponível em ${temporalRules.phase2Reevaluation.daysRemaining ?? 0} dias.`,
 						newDiagnosticAvailableAt:
 							temporalRules.newStructuralDiagnosis.availableAt,
+						phase2WindowDays: activeNiche.phase2ReevaluationDays,
+						newCycleWindowDays: activeNiche.newCycleDays,
 					},
 				}
 			})

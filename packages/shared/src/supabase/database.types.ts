@@ -106,6 +106,10 @@ export type Database = {
 					is_active: boolean
 					is_default: boolean
 					name: string
+					new_cycle_days: number
+					repurchase_checkout_url: string | null
+					repurchase_price_cents: number | null
+					phase2_reevaluation_days: number
 					slug: string
 					updated_at: string
 				}
@@ -116,6 +120,10 @@ export type Database = {
 					is_active?: boolean
 					is_default?: boolean
 					name: string
+					new_cycle_days?: number
+					repurchase_checkout_url?: string | null
+					repurchase_price_cents?: number | null
+					phase2_reevaluation_days?: number
 					slug: string
 					updated_at?: string
 				}
@@ -126,6 +134,10 @@ export type Database = {
 					is_active?: boolean
 					is_default?: boolean
 					name?: string
+					new_cycle_days?: number
+					repurchase_checkout_url?: string | null
+					repurchase_price_cents?: number | null
+					phase2_reevaluation_days?: number
 					slug?: string
 					updated_at?: string
 				}

@@ -21,6 +21,7 @@ import {
 	Loader2,
 	type LucideIcon,
 	Menu,
+	Pencil,
 	Plus,
 	RefreshCw,
 	RotateCcw,
@@ -161,6 +162,10 @@ const adminSections: AdminSectionItem[] = [
 interface NicheFormValues {
 	name: string
 	description: string
+	phase2ReevaluationDays: string
+	newCycleDays: string
+	repurchasePrice: string
+	repurchaseCheckoutUrl: string
 }
 
 interface PhaseFormValues {
@@ -408,6 +413,22 @@ const getProviderLabel = (provider: string): string => {
 	return normalized.length > 0 ? normalized : 'E-mail'
 }
 
+const formatCurrencyFromCents = (value: number | null): string => {
+	if (value == null) return '-'
+	return new Intl.NumberFormat('pt-BR', {
+		style: 'currency',
+		currency: 'BRL',
+	}).format(value / 100)
+}
+
+const parseCurrencyInputToCents = (value: string): number | null => {
+	const normalized = value.trim().replace(/\./g, '').replace(',', '.')
+	if (!normalized) return null
+	const parsed = Number(normalized)
+	if (!Number.isFinite(parsed) || parsed < 0) return null
+	return Math.round(parsed * 100)
+}
+
 export const AdminScreen = ({ section }: AdminScreenProps) => {
 	const access = useAdminAccess()
 	const config = useAdminConfig()
@@ -418,12 +439,23 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 	const [isPhaseModalOpen, setIsPhaseModalOpen] = useState(false)
 	const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false)
 	const [isOptionModalOpen, setIsOptionModalOpen] = useState(false)
+	const [editingNicheId, setEditingNicheId] = useState<string | null>(null)
+	const [editingQuestionId, setEditingQuestionId] = useState<string | null>(
+		null,
+	)
 	const [pendingUserNiches, setPendingUserNiches] = useState<
 		Record<string, string>
 	>({})
 
 	const nicheForm = useForm<NicheFormValues>({
-		defaultValues: { name: '', description: '' },
+		defaultValues: {
+			name: '',
+			description: '',
+			phase2ReevaluationDays: '45',
+			newCycleDays: '90',
+			repurchasePrice: '',
+			repurchaseCheckoutUrl: '',
+		},
 	})
 	const phaseForm = useForm<PhaseFormValues>({
 		defaultValues: {
@@ -484,6 +516,58 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 			...current,
 			[userId]: nicheId,
 		}))
+	}
+	const resetNicheForm = () => {
+		setEditingNicheId(null)
+		nicheForm.reset({
+			name: '',
+			description: '',
+			phase2ReevaluationDays: '45',
+			newCycleDays: '90',
+			repurchasePrice: '',
+			repurchaseCheckoutUrl: '',
+		})
+	}
+
+	const resetQuestionForm = () => {
+		setEditingQuestionId(null)
+		questionForm.reset({
+			phaseId: '',
+			prompt: '',
+			orderIndex: 1,
+		})
+	}
+
+	const openEditNicheModal = (nicheId: string) => {
+		const niche = niches.find((item) => item.id === nicheId)
+		if (!niche) return
+
+		setEditingNicheId(niche.id)
+		nicheForm.reset({
+			name: niche.name,
+			description: niche.description ?? '',
+			phase2ReevaluationDays: String(niche.phase2ReevaluationDays),
+			newCycleDays: String(niche.newCycleDays),
+			repurchasePrice:
+				niche.repurchasePriceCents == null
+					? ''
+					: (niche.repurchasePriceCents / 100).toFixed(2).replace('.', ','),
+			repurchaseCheckoutUrl: niche.repurchaseCheckoutUrl ?? '',
+		})
+		setIsNicheModalOpen(true)
+	}
+
+	const openEditQuestionModal = (questionId: string) => {
+		const question = questions.find((item) => item.id === questionId)
+		if (!question) return
+
+		setEditingQuestionId(question.id)
+		questionForm.reset({
+			phaseId: question.phaseId,
+			prompt: question.prompt,
+			orderIndex: question.orderIndex,
+		})
+		setIsQuestionModalOpen(true)
 	}
 	const phaseNameById = useMemo(
 		() => new Map(phases.map((phase) => [phase.id, phase.title])),
@@ -649,7 +733,10 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 										title="Nichos cadastrados"
 										description="Gerencie status e disponibilidade dos nichos."
 										actionLabel="Adicionar novo"
-										onAction={() => setIsNicheModalOpen(true)}
+										onAction={() => {
+											resetNicheForm()
+											setIsNicheModalOpen(true)
+										}}
 									/>
 
 									<TooltipProvider>
@@ -659,6 +746,9 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 													<TableRow className="hover:bg-secondary/55">
 														<TableHead>Nome</TableHead>
 														<TableHead>Slug</TableHead>
+														<TableHead>Reavaliação</TableHead>
+														<TableHead>Novo ciclo</TableHead>
+														<TableHead>Recompra</TableHead>
 														<TableHead>Status</TableHead>
 														<TableHead className="text-right">Ações</TableHead>
 													</TableRow>
@@ -666,7 +756,7 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 												<TableBody>
 													{niches.length === 0 ? (
 														<EmptyTableState
-															colSpan={4}
+															colSpan={7}
 															message="Nenhum nicho cadastrado."
 														/>
 													) : (
@@ -679,10 +769,35 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																	{niche.slug}
 																</TableCell>
 																<TableCell>
+																	{niche.phase2ReevaluationDays} dias
+																</TableCell>
+																<TableCell>{niche.newCycleDays} dias</TableCell>
+																<TableCell className="max-w-[240px]">
+																	<div className="space-y-1">
+																		<p className="font-medium">
+																			{formatCurrencyFromCents(
+																				niche.repurchasePriceCents,
+																			)}
+																		</p>
+																		<p className="truncate text-xs text-muted-foreground">
+																			{niche.repurchaseCheckoutUrl ||
+																				'Sem link'}
+																		</p>
+																	</div>
+																</TableCell>
+																<TableCell>
 																	<StatusBadge active={niche.isActive} />
 																</TableCell>
 																<TableCell>
 																	<div className="flex justify-end gap-2">
+																		<IconActionButton
+																			icon={Pencil}
+																			label="Editar nicho"
+																			variant="outline"
+																			onClick={() =>
+																				openEditNicheModal(niche.id)
+																			}
+																		/>
 																		<AnimatedActionButton
 																			size="sm"
 																			variant="default"
@@ -774,7 +889,10 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 											title="Perguntas cadastradas"
 											description="Perguntas por fase com ordem definida."
 											actionLabel="Adicionar novo"
-											onAction={() => setIsQuestionModalOpen(true)}
+											onAction={() => {
+												resetQuestionForm()
+												setIsQuestionModalOpen(true)
+											}}
 											actionDisabled={phases.length === 0}
 										/>
 
@@ -786,12 +904,13 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 														<TableHead>Fase</TableHead>
 														<TableHead>Ordem</TableHead>
 														<TableHead>Status</TableHead>
+														<TableHead className="text-right">Ações</TableHead>
 													</TableRow>
 												</TableHeader>
 												<TableBody>
 													{orderedQuestions.length === 0 ? (
 														<EmptyTableState
-															colSpan={4}
+															colSpan={5}
 															message="Nenhuma pergunta cadastrada."
 														/>
 													) : (
@@ -806,6 +925,18 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																<TableCell>{question.orderIndex}</TableCell>
 																<TableCell>
 																	<StatusBadge active={question.isActive} />
+																</TableCell>
+																<TableCell>
+																	<div className="flex justify-end gap-2">
+																		<IconActionButton
+																			icon={Pencil}
+																			label="Editar pergunta"
+																			variant="outline"
+																			onClick={() =>
+																				openEditQuestionModal(question.id)
+																			}
+																		/>
+																	</div>
 																</TableCell>
 															</TableRow>
 														))
@@ -1252,19 +1383,59 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 				</SheetContent>
 			</Sheet>
 
-			<Dialog open={isNicheModalOpen} onOpenChange={setIsNicheModalOpen}>
+			<Dialog
+				open={isNicheModalOpen}
+				onOpenChange={(isOpen) => {
+					setIsNicheModalOpen(isOpen)
+					if (!isOpen) {
+						resetNicheForm()
+					}
+				}}
+			>
 				<DialogContent className="max-w-lg">
 					<DialogHeader>
-						<DialogTitle>Adicionar nicho</DialogTitle>
+						<DialogTitle>
+							{editingNicheId ? 'Editar nicho' : 'Adicionar nicho'}
+						</DialogTitle>
 						<DialogDescription>
-							Cadastre um novo nicho para a matriz de diagnóstico.
+							Configure nome, prazos do ciclo e oferta de recompra do nicho.
 						</DialogDescription>
 					</DialogHeader>
 					<form
 						className="space-y-4"
 						onSubmit={nicheForm.handleSubmit(async (values) => {
-							await config.createNiche.mutateAsync(values)
-							nicheForm.reset({ name: '', description: '' })
+							const payload = {
+								name: values.name,
+								description: values.description,
+								phase2ReevaluationDays: Math.max(
+									1,
+									Number(values.phase2ReevaluationDays) || 45,
+								),
+								newCycleDays: Math.max(1, Number(values.newCycleDays) || 90),
+								repurchasePriceCents: parseCurrencyInputToCents(
+									values.repurchasePrice,
+								),
+								repurchaseCheckoutUrl: values.repurchaseCheckoutUrl,
+							}
+
+							if (editingNicheId) {
+								await config.updateNiche.mutateAsync({
+									id: editingNicheId,
+									data: {
+										name: payload.name.trim(),
+										description: payload.description?.trim() || null,
+										phase2_reevaluation_days: payload.phase2ReevaluationDays,
+										new_cycle_days: payload.newCycleDays,
+										repurchase_price_cents: payload.repurchasePriceCents,
+										repurchase_checkout_url:
+											payload.repurchaseCheckoutUrl?.trim() || null,
+									},
+								})
+							} else {
+								await config.createNiche.mutateAsync(payload)
+							}
+
+							resetNicheForm()
 							setIsNicheModalOpen(false)
 						})}
 					>
@@ -1276,14 +1447,41 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 							placeholder="Descrição (opcional)"
 							{...nicheForm.register('description')}
 						/>
+						<div className="grid gap-4 sm:grid-cols-2">
+							<Input
+								type="number"
+								min={1}
+								placeholder="Dias para reavaliação"
+								{...nicheForm.register('phase2ReevaluationDays', {
+									required: true,
+								})}
+							/>
+							<Input
+								type="number"
+								min={1}
+								placeholder="Dias para novo ciclo"
+								{...nicheForm.register('newCycleDays', { required: true })}
+							/>
+						</div>
+						<Input
+							placeholder="Valor da recompra (ex.: 97,00)"
+							{...nicheForm.register('repurchasePrice')}
+						/>
+						<Input
+							type="url"
+							placeholder="Link de pagamento/recompra"
+							{...nicheForm.register('repurchaseCheckoutUrl')}
+						/>
 						<DialogFooter>
 							<AnimatedActionButton
 								type="submit"
-								icon={Plus}
+								icon={editingNicheId ? Save : Plus}
 								className={primaryCtaClassName}
-								disabled={config.createNiche.isPending}
+								disabled={
+									config.createNiche.isPending || config.updateNiche.isPending
+								}
 							>
-								Salvar nicho
+								{editingNicheId ? 'Salvar alterações' : 'Salvar nicho'}
 							</AnimatedActionButton>
 						</DialogFooter>
 					</form>
@@ -1413,10 +1611,20 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 				</DialogContent>
 			</Dialog>
 
-			<Dialog open={isQuestionModalOpen} onOpenChange={setIsQuestionModalOpen}>
+			<Dialog
+				open={isQuestionModalOpen}
+				onOpenChange={(isOpen) => {
+					setIsQuestionModalOpen(isOpen)
+					if (!isOpen) {
+						resetQuestionForm()
+					}
+				}}
+			>
 				<DialogContent className="max-w-lg">
 					<DialogHeader>
-						<DialogTitle>Adicionar pergunta</DialogTitle>
+						<DialogTitle>
+							{editingQuestionId ? 'Editar pergunta' : 'Adicionar pergunta'}
+						</DialogTitle>
 						<DialogDescription>
 							Cadastre uma pergunta em uma fase existente.
 						</DialogDescription>
@@ -1424,17 +1632,24 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 					<form
 						className="space-y-4"
 						onSubmit={questionForm.handleSubmit(async (values) => {
-							await config.createQuestion.mutateAsync({
-								phase_id: values.phaseId,
-								prompt: values.prompt.trim(),
-								order_index: Number(values.orderIndex),
-								is_active: true,
-							})
-							questionForm.reset({
-								phaseId: '',
-								prompt: '',
-								orderIndex: 1,
-							})
+							if (editingQuestionId) {
+								await config.updateQuestion.mutateAsync({
+									id: editingQuestionId,
+									data: {
+										phase_id: values.phaseId,
+										prompt: values.prompt.trim(),
+										order_index: Number(values.orderIndex),
+									},
+								})
+							} else {
+								await config.createQuestion.mutateAsync({
+									phase_id: values.phaseId,
+									prompt: values.prompt.trim(),
+									order_index: Number(values.orderIndex),
+									is_active: true,
+								})
+							}
+							resetQuestionForm()
 							setIsQuestionModalOpen(false)
 						})}
 					>
@@ -1472,11 +1687,14 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 						<DialogFooter>
 							<AnimatedActionButton
 								type="submit"
-								icon={Plus}
+								icon={editingQuestionId ? Save : Plus}
 								className={primaryCtaClassName}
-								disabled={config.createQuestion.isPending}
+								disabled={
+									config.createQuestion.isPending ||
+									config.updateQuestion.isPending
+								}
 							>
-								Salvar pergunta
+								{editingQuestionId ? 'Salvar alterações' : 'Salvar pergunta'}
 							</AnimatedActionButton>
 						</DialogFooter>
 					</form>

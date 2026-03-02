@@ -13,16 +13,18 @@ import {
 } from '@cortex/ui/components/card'
 import { cn } from '@cortex/ui/lib/cn'
 import {
+	ArrowLeft,
 	ArrowRight,
 	CheckCircle2,
 	Circle,
+	Eye,
 	Loader2,
 	Lock,
 	Sparkles,
 	X,
 } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
-import { useEffect, useMemo } from 'react'
+import { type CSSProperties, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { IconButton } from '@/components/animate-ui/components/buttons/icon'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
@@ -54,9 +56,9 @@ const formatDate = (value: Date | null): string => {
 const stageTitleMap: Record<string, string> = {
 	phase1: 'Fase 1 - Diagnóstico estrutural',
 	'phase1-tie': 'Resultado estrutural - Desempate',
-	'phase1-result': 'Resultado estrutural',
+	'phase1-result': 'Resumo Resultado Fase 1',
 	phase2: 'Fase 2 - Diagnóstico refinado',
-	'phase2-result': 'Resultado refinado',
+	'phase2-result': 'Resumo Resultado Fase 2',
 	'protocol-reflections': 'Protocolo de ação - Reflexões',
 	'protocol-actions': 'Protocolo de ação - Execução',
 	'blocked-45': 'Reavaliação bloqueada',
@@ -66,7 +68,22 @@ const stageTitleMap: Record<string, string> = {
 
 const resolveStageTitle = (
 	flow: ReturnType<typeof useDiagnosticProcessFlow>,
+	resultDetailStage: 'phase1' | 'phase2' | null = null,
 ) => {
+	if (resultDetailStage === 'phase1' && flow.stage === 'phase1-result') {
+		return {
+			eyebrow: 'Resultado completo',
+			title: 'Resumo Resultado Fase 1',
+		}
+	}
+
+	if (resultDetailStage === 'phase2' && flow.stage === 'phase2-result') {
+		return {
+			eyebrow: 'Resultado completo',
+			title: 'Resumo Resultado Fase 2',
+		}
+	}
+
 	if (flow.stage === 'phase1') {
 		return {
 			eyebrow: `Pilar ${flow.phase1.currentPillarIndex} de ${flow.phase1.totalPillars}`,
@@ -187,11 +204,37 @@ const resolveProgressColorToken = (
 	)
 }
 
+const getPillarColorToken = (pillar: PillarKey | null) =>
+	PILLARS.find((item) => item.key === pillar)?.colorToken ?? 'primary'
+
+const getPillarSummaryStyle = (pillar: PillarKey | null): CSSProperties => {
+	const colorToken = getPillarColorToken(pillar)
+
+	return {
+		borderColor: `color-mix(in oklch, var(--${colorToken}) 40%, transparent)`,
+		background: `linear-gradient(145deg, color-mix(in oklch, var(--${colorToken}) 16%, var(--card)) 0%, color-mix(in oklch, var(--${colorToken}) 6%, var(--card)) 100%)`,
+		boxShadow: `0 0 24px color-mix(in oklch, var(--${colorToken}) 18%, transparent)`,
+	}
+}
+
+const getPillarSummaryLabelStyle = (
+	pillar: PillarKey | null,
+): CSSProperties => {
+	const colorToken = getPillarColorToken(pillar)
+
+	return {
+		color: `color-mix(in oklch, var(--${colorToken}) 78%, var(--foreground))`,
+	}
+}
+
 export const DiagnosticProcessModal = ({
 	open,
 	onOpenChange,
 }: DiagnosticProcessModalProps) => {
 	const flow = useDiagnosticProcessFlow(open)
+	const [resultDetailStage, setResultDetailStage] = useState<
+		'phase1' | 'phase2' | null
+	>(null)
 	const reflectionForm = useForm<ReflectionFormValues>({
 		defaultValues: {
 			reflections: ['', '', '', '', ''],
@@ -203,6 +246,21 @@ export const DiagnosticProcessModal = ({
 			reflections: flow.protocol.reflections,
 		})
 	}, [flow.protocol.reflections, reflectionForm])
+
+	useEffect(() => {
+		if (
+			(flow.stage !== 'phase1-result' && resultDetailStage === 'phase1') ||
+			(flow.stage !== 'phase2-result' && resultDetailStage === 'phase2')
+		) {
+			setResultDetailStage(null)
+		}
+	}, [flow.stage, resultDetailStage])
+
+	useEffect(() => {
+		if (!open && resultDetailStage) {
+			setResultDetailStage(null)
+		}
+	}, [open, resultDetailStage])
 
 	const progressPercent = useMemo(() => {
 		if (
@@ -237,6 +295,23 @@ export const DiagnosticProcessModal = ({
 	})
 
 	const progressColorToken = resolveProgressColorToken(flow)
+	const stageTitle = resolveStageTitle(flow, resultDetailStage)
+	const phase1HighlightCards = [
+		{
+			id: 'strong',
+			label: 'Pilar forte',
+			pillar: flow.phase1Summary?.strongPillar ?? null,
+		},
+		{
+			id: 'critical',
+			label: 'Pilar crítico',
+			pillar: flow.phase1Summary?.criticalPillar ?? null,
+		},
+	] as const
+	const isShowingPhase1DetailedResult =
+		flow.stage === 'phase1-result' && resultDetailStage === 'phase1'
+	const isShowingPhase2DetailedResult =
+		flow.stage === 'phase2-result' && resultDetailStage === 'phase2'
 
 	return (
 		<Dialog
@@ -268,14 +343,14 @@ export const DiagnosticProcessModal = ({
 									Cortex System - Diagnóstico Estrutural
 								</CardDescription>
 
-								{resolveStageTitle(flow).eyebrow ? (
+								{stageTitle.eyebrow ? (
 									<CardDescription className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-										{resolveStageTitle(flow).eyebrow}
+										{stageTitle.eyebrow}
 									</CardDescription>
 								) : null}
 
 								<CardTitle className="font-[var(--font-space)] text-xl">
-									{resolveStageTitle(flow).title}
+									{stageTitle.title}
 								</CardTitle>
 							</div>
 
@@ -414,61 +489,167 @@ export const DiagnosticProcessModal = ({
 
 								{flow.stage === 'phase1-result' ? (
 									<div className="space-y-6">
-										<div className="grid gap-4 rounded-2xl border border-border/70 bg-muted/30 p-4 sm:grid-cols-2">
-											<div>
-												<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-													Pilar crítico
-												</p>
-												<p className="mt-1 font-semibold">
-													{pillarLabel(
-														flow.phase1Summary?.criticalPillar ?? null,
-													)}
-												</p>
-											</div>
-											<div>
-												<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-													Pilar forte
-												</p>
-												<p className="mt-1 font-semibold">
-													{pillarLabel(
-														flow.phase1Summary?.strongPillar ?? null,
-													)}
-												</p>
-											</div>
-										</div>
-
-										<div className="grid gap-3 sm:grid-cols-2">
-											{PILLARS.map((pillar) => {
-												const value =
-													flow.phase1Summary?.pillarPercentages[pillar.key] ?? 0
-												const maturity = classifyMaturity(value)
-
-												return (
-													<div
-														key={pillar.key}
-														className="rounded-2xl border border-border/70 bg-card p-4"
-													>
-														<p className="text-sm font-semibold">
-															{pillar.title}
+										{isShowingPhase1DetailedResult ? (
+											<>
+												<div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+													<div className="rounded-2xl border border-border/70 bg-card/80 p-5 backdrop-blur-lg">
+														<p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+															Índice geral estrutural
 														</p>
-														<p className="mt-1 text-2xl font-bold">{value}%</p>
-														<p className="mt-1 text-xs text-muted-foreground">
-															{maturity.label} - {maturity.description}
+														<p className="mt-2 text-4xl font-bold">
+															{flow.phase1Summary?.generalIndex ?? 0}%
+														</p>
+														<p className="mt-3 text-sm text-muted-foreground">
+															Leitura consolidada dos quatro pilares que
+															sustentam a conclusão do projeto.
 														</p>
 													</div>
-												)
-											})}
-										</div>
 
-										<div className="flex flex-wrap gap-3">
-											<Button
-												className="h-11 rounded-2xl"
-												onClick={flow.startPhase2}
-											>
-												Iniciar Fase 2
-												<ArrowRight className="size-4" />
-											</Button>
-										</div>
+													<div className="grid gap-3">
+														{phase1HighlightCards.map((item) => (
+															<div
+																key={item.id}
+																className="rounded-2xl border p-4"
+																style={getPillarSummaryStyle(item.pillar)}
+															>
+																<p
+																	className="text-xs uppercase tracking-[0.16em]"
+																	style={getPillarSummaryLabelStyle(
+																		item.pillar,
+																	)}
+																>
+																	{item.label}
+																</p>
+																<p className="mt-2 text-xl font-semibold tracking-tight">
+																	{pillarLabel(item.pillar)}
+																</p>
+															</div>
+														))}
+													</div>
+												</div>
+
+												<div className="grid gap-3 sm:grid-cols-2">
+													{PILLARS.map((pillar) => {
+														const value =
+															flow.phase1Summary?.pillarPercentages[
+																pillar.key
+															] ?? 0
+														const maturity = classifyMaturity(value)
+
+														return (
+															<div
+																key={pillar.key}
+																className="rounded-2xl border p-4"
+																style={getPillarSummaryStyle(pillar.key)}
+															>
+																<p
+																	className="text-xs uppercase tracking-[0.14em]"
+																	style={getPillarSummaryLabelStyle(pillar.key)}
+																>
+																	{maturity.label}
+																</p>
+																<p className="mt-2 text-lg font-semibold">
+																	{pillar.title}
+																</p>
+																<p className="mt-2 text-3xl font-bold">
+																	{value}%
+																</p>
+																<p className="mt-2 text-sm text-foreground/78">
+																	{maturity.description}
+																</p>
+															</div>
+														)
+													})}
+												</div>
+
+												<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+													<Button
+														variant="outline"
+														className="h-11 rounded-2xl"
+														onClick={() => setResultDetailStage(null)}
+													>
+														<ArrowLeft className="size-4" />
+														Voltar ao resumo
+													</Button>
+
+													<Button
+														className="h-11 rounded-2xl"
+														onClick={flow.startPhase2}
+													>
+														Próximo Nível
+														<ArrowRight className="size-4" />
+													</Button>
+												</div>
+											</>
+										) : (
+											<>
+												<div className="grid gap-4 sm:grid-cols-2">
+													{phase1HighlightCards.map((item) => (
+														<div
+															key={item.id}
+															className="rounded-2xl border p-5"
+															style={getPillarSummaryStyle(item.pillar)}
+														>
+															<p
+																className="text-xs uppercase tracking-[0.16em]"
+																style={getPillarSummaryLabelStyle(item.pillar)}
+															>
+																{item.label}
+															</p>
+															<p className="mt-3 text-2xl font-semibold tracking-tight">
+																{pillarLabel(item.pillar)}
+															</p>
+														</div>
+													))}
+												</div>
+
+												<div className="grid gap-3 sm:grid-cols-2">
+													{PILLARS.map((pillar) => {
+														const value =
+															flow.phase1Summary?.pillarPercentages[
+																pillar.key
+															] ?? 0
+														const maturity = classifyMaturity(value)
+
+														return (
+															<div
+																key={pillar.key}
+																className="rounded-2xl border border-border/70 bg-card p-4"
+															>
+																<p className="text-sm font-semibold">
+																	{pillar.title}
+																</p>
+																<p className="mt-1 text-2xl font-bold">
+																	{value}%
+																</p>
+																<p className="mt-1 text-xs text-muted-foreground">
+																	{maturity.label} - {maturity.description}
+																</p>
+															</div>
+														)
+													})}
+												</div>
+
+												<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+													<Button
+														variant="outline"
+														className="h-11 rounded-2xl"
+														onClick={() => setResultDetailStage('phase1')}
+													>
+														<Eye className="size-4" />
+														Acessar Resultado Completo
+													</Button>
+
+													<Button
+														className="h-11 rounded-2xl"
+														onClick={flow.startPhase2}
+													>
+														Próximo Nível
+														<ArrowRight className="size-4" />
+													</Button>
+												</div>
+											</>
+										)}
 									</div>
 								) : null}
 
@@ -506,82 +687,210 @@ export const DiagnosticProcessModal = ({
 
 								{flow.stage === 'phase2-result' ? (
 									<div className="space-y-6">
-										<div className="grid gap-4 sm:grid-cols-3">
-											<div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
-												<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-													Índice técnico
-												</p>
-												<p className="mt-1 text-2xl font-bold">
-													{flow.phase2Summary?.technicalIndex ?? 0}%
-												</p>
-											</div>
-											<div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
-												<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-													Índice estado atual
-												</p>
-												<p className="mt-1 text-2xl font-bold">
-													{flow.phase2Summary?.stateIndex ?? 0}%
-												</p>
-											</div>
-											<div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
-												<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-													Índice geral refinado
-												</p>
-												<p className="mt-1 text-2xl font-bold">
-													{flow.phase2Summary?.generalIndex ?? 0}%
-												</p>
-											</div>
-										</div>
-
-										<div className="space-y-3">
-											<h4 className="font-semibold">
-												Pontos críticos (nota menor ou igual a 2)
-											</h4>
-											{flow.criticalPoints.length === 0 ? (
-												<p className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm">
-													Nenhum ponto crítico identificado nesta etapa.
-												</p>
-											) : (
-												<div className="space-y-3">
-													{flow.criticalPoints.map((point) => (
-														<div
-															key={point.id}
-															className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4"
-														>
-															<p className="text-sm font-semibold">
-																Nota {point.score} - {point.title}
-															</p>
-															<p className="mt-1 text-sm">{point.diagnosis}</p>
-														</div>
-													))}
-												</div>
-											)}
-										</div>
-
-										{flow.isReevaluationMode ? (
-											<div className="space-y-3 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4">
-												<p className="text-sm font-semibold">
-													Reavaliação concluída
-												</p>
-												<p className="text-sm">
-													{flow.temporalRules.newStructuralDiagnosis.message}
-												</p>
-												<p className="text-xs text-muted-foreground">
-													Próximo diagnóstico completo em:{' '}
-													{formatDate(
-														flow.temporalRules.newStructuralDiagnosis
-															.availableAt,
+										{isShowingPhase2DetailedResult ? (
+											<>
+												<div
+													className="rounded-2xl border p-5"
+													style={getPillarSummaryStyle(
+														flow.phase2.criticalPillar,
 													)}
-												</p>
-											</div>
+												>
+													<p
+														className="text-xs uppercase tracking-[0.14em]"
+														style={getPillarSummaryLabelStyle(
+															flow.phase2.criticalPillar,
+														)}
+													>
+														Pilar analisado em profundidade
+													</p>
+													<p className="mt-2 text-2xl font-semibold tracking-tight">
+														{pillarLabel(flow.phase2.criticalPillar)}
+													</p>
+												</div>
+
+												<div className="grid gap-4 sm:grid-cols-3">
+													<div className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg">
+														<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+															Índice técnico
+														</p>
+														<p className="mt-1 text-2xl font-bold">
+															{flow.phase2Summary?.technicalIndex ?? 0}%
+														</p>
+													</div>
+													<div className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg">
+														<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+															Índice estado atual
+														</p>
+														<p className="mt-1 text-2xl font-bold">
+															{flow.phase2Summary?.stateIndex ?? 0}%
+														</p>
+													</div>
+													<div className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg">
+														<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+															Índice geral refinado
+														</p>
+														<p className="mt-1 text-2xl font-bold">
+															{flow.phase2Summary?.generalIndex ?? 0}%
+														</p>
+													</div>
+												</div>
+
+												<div className="space-y-3">
+													<h4 className="font-semibold">
+														Leitura diagnóstica completa
+													</h4>
+													{flow.criticalPoints.length === 0 ? (
+														<p className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm">
+															Nenhum ponto crítico identificado nesta etapa.
+														</p>
+													) : (
+														<div className="space-y-3">
+															{flow.criticalPoints.map((point) => (
+																<div
+																	key={point.id}
+																	className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4"
+																>
+																	<p className="text-sm font-semibold">
+																		Nota {point.score} - {point.title}
+																	</p>
+																	<p className="mt-1 text-sm">
+																		{point.diagnosis}
+																	</p>
+																</div>
+															))}
+														</div>
+													)}
+												</div>
+
+												<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+													<Button
+														variant="outline"
+														className="h-11 rounded-2xl"
+														onClick={() => setResultDetailStage(null)}
+													>
+														<ArrowLeft className="size-4" />
+														Voltar ao resumo
+													</Button>
+
+													{flow.isReevaluationMode ? (
+														<div className="rounded-2xl border border-blue-500/25 bg-blue-500/10 px-4 py-3 text-sm text-left sm:max-w-sm">
+															<p className="font-semibold">
+																Reavaliação concluída
+															</p>
+															<p className="mt-1 text-muted-foreground">
+																{
+																	flow.temporalRules.newStructuralDiagnosis
+																		.message
+																}
+															</p>
+														</div>
+													) : (
+														<Button
+															className="h-11 rounded-2xl"
+															onClick={flow.startProtocol}
+														>
+															Iniciar Protocolo de Ação
+															<ArrowRight className="size-4" />
+														</Button>
+													)}
+												</div>
+											</>
 										) : (
-											<Button
-												className="h-11 rounded-2xl"
-												onClick={flow.startProtocol}
-											>
-												Iniciar Protocolo de Ação
-												<ArrowRight className="size-4" />
-											</Button>
+											<>
+												<div className="grid gap-4 sm:grid-cols-3">
+													<div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
+														<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+															Índice técnico
+														</p>
+														<p className="mt-1 text-2xl font-bold">
+															{flow.phase2Summary?.technicalIndex ?? 0}%
+														</p>
+													</div>
+													<div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
+														<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+															Índice estado atual
+														</p>
+														<p className="mt-1 text-2xl font-bold">
+															{flow.phase2Summary?.stateIndex ?? 0}%
+														</p>
+													</div>
+													<div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
+														<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+															Índice geral refinado
+														</p>
+														<p className="mt-1 text-2xl font-bold">
+															{flow.phase2Summary?.generalIndex ?? 0}%
+														</p>
+													</div>
+												</div>
+
+												<div className="space-y-3">
+													<h4 className="font-semibold">
+														Pontos críticos (nota menor ou igual a 2)
+													</h4>
+													{flow.criticalPoints.length === 0 ? (
+														<p className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm">
+															Nenhum ponto crítico identificado nesta etapa.
+														</p>
+													) : (
+														<div className="space-y-3">
+															{flow.criticalPoints.map((point) => (
+																<div
+																	key={point.id}
+																	className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4"
+																>
+																	<p className="text-sm font-semibold">
+																		Nota {point.score} - {point.title}
+																	</p>
+																	<p className="mt-1 text-sm">
+																		{point.diagnosis}
+																	</p>
+																</div>
+															))}
+														</div>
+													)}
+												</div>
+
+												<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+													<Button
+														variant="outline"
+														className="h-11 rounded-2xl"
+														onClick={() => setResultDetailStage('phase2')}
+													>
+														<Eye className="size-4" />
+														Acessar Resultado Completo
+													</Button>
+
+													{flow.isReevaluationMode ? (
+														<div className="space-y-3 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4 sm:max-w-sm">
+															<p className="text-sm font-semibold">
+																Reavaliação concluída
+															</p>
+															<p className="text-sm">
+																{
+																	flow.temporalRules.newStructuralDiagnosis
+																		.message
+																}
+															</p>
+															<p className="text-xs text-muted-foreground">
+																Próximo diagnóstico completo em:{' '}
+																{formatDate(
+																	flow.temporalRules.newStructuralDiagnosis
+																		.availableAt,
+																)}
+															</p>
+														</div>
+													) : (
+														<Button
+															className="h-11 rounded-2xl"
+															onClick={flow.startProtocol}
+														>
+															Iniciar Protocolo de Ação
+															<ArrowRight className="size-4" />
+														</Button>
+													)}
+												</div>
+											</>
 										)}
 									</div>
 								) : null}

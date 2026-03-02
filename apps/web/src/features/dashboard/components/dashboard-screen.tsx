@@ -71,7 +71,7 @@ const achievementCardStyles = {
 } as const
 
 const achievementStatusLabel = {
-	completed: 'Completed',
+	completed: 'Completo',
 	active: 'Ativo',
 	locked: 'Travado',
 } as const
@@ -301,12 +301,29 @@ export const DashboardScreen = () => {
 								<Button
 									className="group h-11 w-full rounded-2xl bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:w-auto"
 									disabled={!viewModel.hasNicheAccess}
-									onClick={() => setIsDiagnosticModalOpen(true)}
+									onClick={() => {
+										if (viewModel.repurchaseOffer?.checkoutUrl) {
+											window.open(
+												viewModel.repurchaseOffer.checkoutUrl,
+												'_blank',
+												'noopener,noreferrer',
+											)
+											return
+										}
+
+										setIsDiagnosticModalOpen(true)
+									}}
 								>
 									{viewModel.ctaLabel}
 									<ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
 								</Button>
 							</motion.div>
+							{viewModel.repurchaseOffer?.checkoutUrl ? (
+								<p className="text-xs text-muted-foreground">
+									Oferta de recompra disponível:{' '}
+									{viewModel.repurchaseOffer.priceLabel}
+								</p>
+							) : null}
 						</CardContent>
 					</Card>
 				</Reveal>
@@ -376,15 +393,16 @@ export const DashboardScreen = () => {
 												{formatDate(item.timeline.protocolCompletedAt)}
 											</p>
 											<p>
-												Reavaliação (45 dias):{' '}
+												Reavaliação ({item.timeline.phase2WindowDays} dias):{' '}
 												{formatDate(item.timeline.reeval45AvailableAt)}
 											</p>
 											<p className="sm:col-span-2">
-												Contagem regressiva (45 dias):{' '}
-												{item.timeline.reeval45Countdown}
+												Contagem regressiva ({item.timeline.phase2WindowDays}{' '}
+												dias): {item.timeline.reeval45Countdown}
 											</p>
 											<p>
-												Novo diagnóstico (90 dias):{' '}
+												Novo diagnóstico ({item.timeline.newCycleWindowDays}{' '}
+												dias):{' '}
 												{formatDate(item.timeline.newDiagnosticAvailableAt)}
 											</p>
 										</div>

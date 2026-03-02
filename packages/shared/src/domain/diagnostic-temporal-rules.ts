@@ -1,3 +1,5 @@
+import { REEVALUATION_WINDOWS } from '../constants/pillars'
+
 const DAY_MS = 1000 * 60 * 60 * 24
 
 const addDays = (date: Date, days: number): Date => {
@@ -36,6 +38,8 @@ interface DiagnosticTemporalRulesInput {
 	phase1CompletedAt: Date | null
 	protocolCompletedAt: Date | null
 	reeval45CompletedAt: Date | null
+	phase2ReevaluationDays?: number | null
+	newStructuralDiagnosisDays?: number | null
 	now?: Date
 }
 
@@ -43,9 +47,17 @@ export const computeDiagnosticTemporalRules = (
 	input: DiagnosticTemporalRulesInput,
 ): DiagnosticTemporalRules => {
 	const now = input.now ?? new Date()
+	const phase2ReevaluationDays = Math.max(
+		1,
+		input.phase2ReevaluationDays ?? REEVALUATION_WINDOWS.firstDays,
+	)
+	const newStructuralDiagnosisDays = Math.max(
+		1,
+		input.newStructuralDiagnosisDays ?? REEVALUATION_WINDOWS.secondDays,
+	)
 
 	const phase2AvailableAt = input.protocolCompletedAt
-		? addDays(input.protocolCompletedAt, 45)
+		? addDays(input.protocolCompletedAt, phase2ReevaluationDays)
 		: null
 	const phase2DaysRemaining = phase2AvailableAt
 		? getDaysUntil(phase2AvailableAt, now)
@@ -53,13 +65,13 @@ export const computeDiagnosticTemporalRules = (
 	const phase2Locked = phase2AvailableAt ? (phase2DaysRemaining ?? 0) > 0 : true
 
 	const phase2Message = !input.protocolCompletedAt
-		? 'Reavaliação disponível após concluir o Protocolo de Ação.'
+		? `Reavaliação disponível em ${formatDayLabel(phase2ReevaluationDays)}, após concluir o Protocolo de Ação.`
 		: typeof phase2DaysRemaining === 'number' && phase2DaysRemaining > 0
 			? `Reavaliação disponível em ${formatDayLabel(phase2DaysRemaining)}.`
 			: 'Reavaliação liberada.'
 
 	const newDiagnosticAvailableAt = input.phase1CompletedAt
-		? addDays(input.phase1CompletedAt, 90)
+		? addDays(input.phase1CompletedAt, newStructuralDiagnosisDays)
 		: null
 	const newDiagnosticDaysRemaining = newDiagnosticAvailableAt
 		? getDaysUntil(newDiagnosticAvailableAt, now)
@@ -69,7 +81,7 @@ export const computeDiagnosticTemporalRules = (
 		: true
 
 	const newDiagnosticMessage = !input.phase1CompletedAt
-		? 'Novo diagnóstico estrutural disponível após concluir a Fase 1.'
+		? `Novo diagnóstico estrutural disponível em ${formatDayLabel(newStructuralDiagnosisDays)}.`
 		: typeof newDiagnosticDaysRemaining === 'number' &&
 				newDiagnosticDaysRemaining > 0
 			? `Novo diagnóstico estrutural disponível em ${formatDayLabel(newDiagnosticDaysRemaining)}.`

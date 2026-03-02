@@ -16,6 +16,10 @@ interface AccessibleNicheViewModel {
 	name: string
 	slug: string
 	description: string | null
+	phase2ReevaluationDays: number
+	newCycleDays: number
+	repurchasePriceCents: number | null
+	repurchaseCheckoutUrl: string | null
 	purchasedAt: Date
 	expiresAt: Date | null
 }
@@ -88,6 +92,10 @@ export const useActiveNicheAccess = () => {
 						name: niche.name,
 						slug: niche.slug,
 						description: niche.description,
+						phase2ReevaluationDays: niche.phase2ReevaluationDays,
+						newCycleDays: niche.newCycleDays,
+						repurchasePriceCents: niche.repurchasePriceCents,
+						repurchaseCheckoutUrl: niche.repurchaseCheckoutUrl,
 						purchasedAt: access.purchasedAt,
 						expiresAt: access.expiresAt,
 					} satisfies AccessibleNicheViewModel

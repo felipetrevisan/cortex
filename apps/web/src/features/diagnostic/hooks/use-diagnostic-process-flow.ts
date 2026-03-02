@@ -118,22 +118,34 @@ const getPhase1QuestionNumber = (
 const getCheckpointKey = (userId: string, nicheId: string) =>
 	`cortex.diagnostic.checkpoint.${userId}.${nicheId}`
 
-const getTemporalRulesForCycle = (cycle: DiagnosticCycleRow | null) =>
+const getTemporalRulesForCycle = (
+	cycle: DiagnosticCycleRow | null,
+	config?: {
+		phase2ReevaluationDays?: number | null
+		newStructuralDiagnosisDays?: number | null
+	},
+) =>
 	computeDiagnosticTemporalRules({
 		phase1CompletedAt: parseIsoDate(cycle?.phase1_completed_at),
 		protocolCompletedAt: parseIsoDate(cycle?.protocol_completed_at),
 		reeval45CompletedAt: parseIsoDate(cycle?.reeval_45_completed_at),
+		phase2ReevaluationDays: config?.phase2ReevaluationDays ?? null,
+		newStructuralDiagnosisDays: config?.newStructuralDiagnosisDays ?? null,
 	})
 
 const assertPhase2AllowedFromCycle = (
 	cycle: DiagnosticCycleRow,
 	mode: { isReevaluation: boolean },
+	config?: {
+		phase2ReevaluationDays?: number | null
+		newStructuralDiagnosisDays?: number | null
+	},
 ): string | null => {
 	if (!cycle.phase1_completed_at) {
 		return 'Conclua a Fase 1 antes de acessar a Fase 2.'
 	}
 
-	const rules = getTemporalRulesForCycle(cycle)
+	const rules = getTemporalRulesForCycle(cycle, config)
 
 	if (cycle.protocol_completed_at && rules.phase2Reevaluation.isLocked) {
 		return rules.phase2Reevaluation.message
@@ -372,6 +384,13 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 	const blueprintQuery = useDiagnosticBlueprintQuery()
 	const blueprint = blueprintQuery.data
 	const activeNicheId = activeNiche?.nicheId ?? null
+	const temporalConfig = useMemo(
+		() => ({
+			phase2ReevaluationDays: activeNiche?.phase2ReevaluationDays ?? null,
+			newStructuralDiagnosisDays: activeNiche?.newCycleDays ?? null,
+		}),
+		[activeNiche?.newCycleDays, activeNiche?.phase2ReevaluationDays],
+	)
 
 	const [cycle, setCycle] = useState<DiagnosticCycleRow | null>(null)
 	const [phase1Answers, setPhase1Answers] = useState<Phase1AnswersMap>({})
@@ -392,7 +411,10 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 	const [isInitializing, setIsInitializing] = useState(false)
 	const [isSaving, setIsSaving] = useState(false)
 
-	const temporalRules = useMemo(() => getTemporalRulesForCycle(cycle), [cycle])
+	const temporalRules = useMemo(
+		() => getTemporalRulesForCycle(cycle, temporalConfig),
+		[cycle, temporalConfig],
+	)
 
 	const resolvedCriticalPillar = useMemo(() => {
 		const cycleCriticalPillar = cycle?.critical_pillar ?? null
@@ -662,7 +684,7 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 			}
 
 			let activeCycle = latestCycle
-			const latestRules = getTemporalRulesForCycle(latestCycle)
+			const latestRules = getTemporalRulesForCycle(latestCycle, temporalConfig)
 
 			if (!activeCycle || latestRules.canStartNewCycle) {
 				if (activeCycle && latestRules.canStartNewCycle) {
@@ -856,7 +878,10 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 			setProtocol(mergedProtocol)
 
 			if (activeCycle.protocol_completed_at || mergedProtocol.completedAt) {
-				const activeRules = getTemporalRulesForCycle(activeCycle)
+				const activeRules = getTemporalRulesForCycle(
+					activeCycle,
+					temporalConfig,
+				)
 
 				if (activeRules.phase2Reevaluation.isLocked) {
 					setStage('blocked-45')
@@ -906,6 +931,7 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 		persistPhase1Summary,
 		persistPhase2Summary,
 		reflectionCount,
+		temporalConfig,
 		totalPhase1Questions,
 		user?.id,
 	])
@@ -1129,15 +1155,20 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 
 		try {
 			const freshCycle = await getFreshCycleById(cycle.id)
-			const phase2GateError = assertPhase2AllowedFromCycle(freshCycle, {
-				isReevaluation: isReevaluationMode,
-			})
+			const phase2GateError = assertPhase2AllowedFromCycle(
+				freshCycle,
+				{
+					isReevaluation: isReevaluationMode,
+				},
+				temporalConfig,
+			)
 
 			if (phase2GateError) {
 				setErrorMessage(phase2GateError)
 				setStage(
 					freshCycle.protocol_completed_at &&
-						getTemporalRulesForCycle(freshCycle).phase2Reevaluation.isLocked
+						getTemporalRulesForCycle(freshCycle, temporalConfig)
+							.phase2Reevaluation.isLocked
 						? 'blocked-45'
 						: 'phase1',
 				)
@@ -1180,6 +1211,7 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 		phase2Answers,
 		phase2Questions,
 		resolvedCriticalPillar,
+		temporalConfig,
 	])
 
 	const savePhase2Answer = useCallback(
@@ -1203,14 +1235,19 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 
 			try {
 				const freshCycle = await getFreshCycleById(cycle.id)
-				const phase2GateError = assertPhase2AllowedFromCycle(freshCycle, {
-					isReevaluation: isReevaluationMode,
-				})
+				const phase2GateError = assertPhase2AllowedFromCycle(
+					freshCycle,
+					{
+						isReevaluation: isReevaluationMode,
+					},
+					temporalConfig,
+				)
 				if (phase2GateError) {
 					setErrorMessage(phase2GateError)
 					setStage(
 						freshCycle.protocol_completed_at &&
-							getTemporalRulesForCycle(freshCycle).phase2Reevaluation.isLocked
+							getTemporalRulesForCycle(freshCycle, temporalConfig)
+								.phase2Reevaluation.isLocked
 							? 'blocked-45'
 							: 'phase1',
 					)
@@ -1349,6 +1386,7 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 			saveCheckpoint,
 			getFreshCycleById,
 			isReevaluationMode,
+			temporalConfig,
 			user?.id,
 		],
 	)

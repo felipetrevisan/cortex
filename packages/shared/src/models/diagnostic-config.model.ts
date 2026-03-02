@@ -47,6 +47,10 @@ export interface DiagnosticNicheModel {
 	slug: string
 	description: string | null
 	isActive: boolean
+	phase2ReevaluationDays: number
+	newCycleDays: number
+	repurchasePriceCents: number | null
+	repurchaseCheckoutUrl: string | null
 }
 
 const toPillar = (value: string | null): PillarKey | null => {
@@ -69,6 +73,10 @@ export const mapDiagnosticNiche = (
 	slug: row.slug,
 	description: row.description,
 	isActive: row.is_active,
+	phase2ReevaluationDays: row.phase2_reevaluation_days,
+	newCycleDays: row.new_cycle_days,
+	repurchasePriceCents: row.repurchase_price_cents,
+	repurchaseCheckoutUrl: row.repurchase_checkout_url,
 })
 
 export const mapDiagnosticPhase = (

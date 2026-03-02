@@ -87,6 +87,8 @@ export const useAdminConfig = () => {
 		await Promise.all([
 			queryClient.invalidateQueries({ queryKey: queryKeys.admin.config }),
 			queryClient.invalidateQueries({ queryKey: ['diagnostic', 'blueprint'] }),
+			queryClient.invalidateQueries({ queryKey: ['auth', 'niche-access'] }),
+			queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
 		])
 	}
 
@@ -94,12 +96,20 @@ export const useAdminConfig = () => {
 		mutationFn: async (payload: {
 			name: string
 			description?: string | null
+			phase2ReevaluationDays: number
+			newCycleDays: number
+			repurchasePriceCents?: number | null
+			repurchaseCheckoutUrl?: string | null
 		}) => {
 			const insertPayload: TablesInsert<'diagnostic_niches'> = {
 				name: payload.name.trim(),
 				slug: normalizeSlug(payload.name),
 				description: payload.description?.trim() || null,
 				is_active: true,
+				phase2_reevaluation_days: payload.phase2ReevaluationDays,
+				new_cycle_days: payload.newCycleDays,
+				repurchase_price_cents: payload.repurchasePriceCents ?? null,
+				repurchase_checkout_url: payload.repurchaseCheckoutUrl?.trim() || null,
 			}
 
 			const { error } = await getSupabaseClient()
@@ -165,6 +175,25 @@ export const useAdminConfig = () => {
 		onError: (error) => toast.error(error.message),
 	})
 
+	const updateQuestion = useMutation({
+		mutationFn: async (payload: {
+			id: string
+			data: TablesUpdate<'diagnostic_phase_questions'>
+		}) => {
+			const { error } = await getSupabaseClient()
+				.from('diagnostic_phase_questions')
+				.update(payload.data)
+				.eq('id', payload.id)
+
+			if (error) throw new Error(error.message)
+		},
+		onSuccess: async () => {
+			toast.success('Pergunta atualizada.')
+			await invalidateAll()
+		},
+		onError: (error) => toast.error(error.message),
+	})
+
 	const createOption = useMutation({
 		mutationFn: async (payload: TablesInsert<'diagnostic_phase_options'>) => {
 			const { error } = await getSupabaseClient()
@@ -185,6 +214,7 @@ export const useAdminConfig = () => {
 		updateNiche,
 		createPhase,
 		createQuestion,
+		updateQuestion,
 		createOption,
 	}
 }

@@ -17,12 +17,19 @@ interface PillarGaugeCardProps {
 	colorToken: string
 }
 
+const getPillarStatusLabel = (value: number) => {
+	if (value <= 40) return 'Crítico'
+	if (value <= 70) return 'Instável'
+	return 'Sólido'
+}
+
 export const PillarGaugeCard = ({
 	title,
 	value,
 	colorToken,
 }: PillarGaugeCardProps) => {
 	const gaugeValue = Math.max(0, Math.min(100, value))
+	const statusLabel = getPillarStatusLabel(gaugeValue)
 	const radius = 52
 	const circumference = Math.PI * radius
 	const dashOffset = circumference * (1 - gaugeValue / 100)
@@ -81,7 +88,7 @@ export const PillarGaugeCard = ({
 						</div>
 					</div>
 					<p className="text-center text-sm font-medium leading-relaxed text-muted-foreground">
-						Crítico
+						{statusLabel}
 					</p>
 				</CardContent>
 			</Card>

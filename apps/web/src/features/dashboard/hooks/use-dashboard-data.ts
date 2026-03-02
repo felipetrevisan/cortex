@@ -140,6 +140,7 @@ export const useDashboardData = () => {
 				},
 				history: [],
 				comparative: comparativeQuery.report,
+				repurchaseOffer: null,
 				achievements: resolveAchievements({
 					hasNicheAccess: false,
 					cycle: null,
@@ -168,9 +169,8 @@ export const useDashboardData = () => {
 					reeval90: 'bloqueada' as const,
 				},
 				statusCardMessages: {
-					reeval45: 'Reavaliação disponível após concluir o Protocolo de Ação.',
-					reeval90:
-						'Novo diagnóstico estrutural disponível após concluir a Fase 1.',
+					reeval45: `Reavaliação disponível em ${activeNiche.phase2ReevaluationDays} dias, após concluir o Protocolo de Ação.`,
+					reeval90: `Novo diagnóstico estrutural disponível em ${activeNiche.newCycleDays} dias.`,
 				},
 				strategicRatio: protocol?.strategicProgress.ratioLabel ?? '0 / 9',
 				strategicCompleted: protocol?.strategicProgress.completedActions ?? 0,
@@ -185,6 +185,7 @@ export const useDashboardData = () => {
 				},
 				history: comparativeQuery.data ?? [],
 				comparative: comparativeQuery.report,
+				repurchaseOffer: null,
 				achievements: resolveAchievements({
 					hasNicheAccess: true,
 					cycle: null,
@@ -197,8 +198,17 @@ export const useDashboardData = () => {
 			phase1CompletedAt: cycle.timeline.phase1CompletedAt,
 			protocolCompletedAt: cycle.timeline.protocolCompletedAt,
 			reeval45CompletedAt: cycle.timeline.reeval45CompletedAt,
+			phase2ReevaluationDays: activeNiche.phase2ReevaluationDays,
+			newStructuralDiagnosisDays: activeNiche.newCycleDays,
 		})
 		const isCycleCompleted = Boolean(cycle.timeline.protocolCompletedAt)
+		const repurchasePriceLabel =
+			activeNiche.repurchasePriceCents == null
+				? null
+				: new Intl.NumberFormat('pt-BR', {
+						style: 'currency',
+						currency: 'BRL',
+					}).format(activeNiche.repurchasePriceCents / 100)
 
 		return {
 			greetingName: profileQuery.data?.fullName ?? 'Usuário',
@@ -209,27 +219,42 @@ export const useDashboardData = () => {
 			activeNicheSlug: activeNiche.slug,
 			availableNiches: nicheAccess.availableNiches,
 			hasStartedDiagnostic: true,
-			ctaLabel: temporalRules.canRunPhase2Reevaluation
-				? 'Refazer Avaliação Aprofundada'
-				: temporalRules.canStartNewCycle
-					? 'Iniciar Novo Diagnóstico'
-					: isCycleCompleted
-						? 'Aguardar Reavaliação'
-						: 'Continuar Diagnóstico',
-			ctaTitle: temporalRules.canRunPhase2Reevaluation
-				? 'Refazer Avaliação Aprofundada'
-				: temporalRules.canStartNewCycle
-					? 'Iniciar Novo Diagnóstico'
-					: isCycleCompleted
-						? 'Ciclo Concluído'
-						: 'Continuar Diagnóstico',
-			ctaDescription: temporalRules.canRunPhase2Reevaluation
-				? '45 dias concluídos desde o protocolo. Refaça sua Avaliação Aprofundada.'
-				: temporalRules.canStartNewCycle
-					? 'Novo ciclo liberado. Refaça a Fase 1 para iniciar um diagnóstico completo.'
-					: isCycleCompleted
-						? temporalRules.phase2Reevaluation.message
-						: 'Retome sua avaliação de onde parou.',
+			ctaLabel:
+				temporalRules.canStartNewCycle &&
+				activeNiche.repurchasePriceCents != null &&
+				activeNiche.repurchaseCheckoutUrl
+					? `Pagar ${repurchasePriceLabel} para refazer`
+					: temporalRules.canRunPhase2Reevaluation
+						? 'Refazer Avaliação Aprofundada'
+						: temporalRules.canStartNewCycle
+							? 'Iniciar Novo Diagnóstico'
+							: isCycleCompleted
+								? 'Aguardar Reavaliação'
+								: 'Continuar Diagnóstico',
+			ctaTitle:
+				temporalRules.canStartNewCycle &&
+				activeNiche.repurchasePriceCents != null &&
+				activeNiche.repurchaseCheckoutUrl
+					? 'Refazer CORTEX'
+					: temporalRules.canRunPhase2Reevaluation
+						? 'Refazer Avaliação Aprofundada'
+						: temporalRules.canStartNewCycle
+							? 'Iniciar Novo Diagnóstico'
+							: isCycleCompleted
+								? 'Ciclo Concluído'
+								: 'Continuar Diagnóstico',
+			ctaDescription:
+				temporalRules.canStartNewCycle &&
+				activeNiche.repurchasePriceCents != null &&
+				activeNiche.repurchaseCheckoutUrl
+					? `Seu novo ciclo já pode ser liberado. Conclua o pagamento de ${repurchasePriceLabel} para refazer todo o CORTEX neste nicho.`
+					: temporalRules.canRunPhase2Reevaluation
+						? `${activeNiche.phase2ReevaluationDays} dias concluídos desde o protocolo. Refaça sua Avaliação Aprofundada.`
+						: temporalRules.canStartNewCycle
+							? 'Novo ciclo liberado. Refaça a Fase 1 para iniciar um diagnóstico completo.'
+							: isCycleCompleted
+								? temporalRules.phase2Reevaluation.message
+								: 'Retome sua avaliação de onde parou.',
 			statusCards: {
 				current: cycle.timeline.protocolCompletedAt ? 'concluida' : 'pendente',
 				reeval45: cycle.timeline.reeval45CompletedAt
@@ -259,6 +284,14 @@ export const useDashboardData = () => {
 			pillars: cycle.pillars,
 			history: comparativeQuery.data ?? [],
 			comparative: comparativeQuery.report,
+			repurchaseOffer:
+				temporalRules.canStartNewCycle &&
+				activeNiche.repurchasePriceCents != null
+					? {
+							priceLabel: repurchasePriceLabel,
+							checkoutUrl: activeNiche.repurchaseCheckoutUrl,
+						}
+					: null,
 			achievements: resolveAchievements({
 				hasNicheAccess: true,
 				cycle,
