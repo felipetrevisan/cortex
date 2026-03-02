@@ -33,6 +33,7 @@ import { motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
 import { type ReactNode, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
+import { IconButton } from '@/components/animate-ui/components/buttons/icon'
 import {
 	Highlight,
 	HighlightItem,
@@ -82,6 +83,12 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { DashboardHeader } from '@/features/dashboard/components/dashboard-header'
 import { useAdminAccess } from '../hooks/use-admin-access'
 import { useAdminConfig } from '../hooks/use-admin-config'
@@ -191,6 +198,21 @@ interface AnimatedActionButtonProps extends ButtonProps {
 	icon: LucideIcon
 }
 
+interface IconActionButtonProps {
+	icon: LucideIcon
+	label: string
+	onClick: () => void
+	disabled?: boolean
+	className?: string
+	variant?:
+		| 'default'
+		| 'accent'
+		| 'destructive'
+		| 'outline'
+		| 'secondary'
+		| 'ghost'
+}
+
 interface SectionToolbarProps {
 	title: string
 	description: string
@@ -216,6 +238,34 @@ const AnimatedActionButton = ({
 			{children}
 		</Button>
 	</motion.div>
+)
+
+const IconActionButton = ({
+	icon: Icon,
+	label,
+	onClick,
+	disabled,
+	className,
+	variant = 'default',
+}: IconActionButtonProps) => (
+	<Tooltip>
+		<TooltipTrigger asChild>
+			<span>
+				<IconButton
+					type="button"
+					size="sm"
+					variant={variant}
+					aria-label={label}
+					disabled={disabled}
+					className={cn('cursor-pointer', className)}
+					onClick={onClick}
+				>
+					<Icon className="size-4" />
+				</IconButton>
+			</span>
+		</TooltipTrigger>
+		<TooltipContent side="top">{label}</TooltipContent>
+	</Tooltip>
 )
 
 const SectionToolbar = ({
@@ -602,63 +652,65 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 										onAction={() => setIsNicheModalOpen(true)}
 									/>
 
-									<TableShell>
-										<Table>
-											<TableHeader className="bg-secondary/55">
-												<TableRow className="hover:bg-secondary/55">
-													<TableHead>Nome</TableHead>
-													<TableHead>Slug</TableHead>
-													<TableHead>Status</TableHead>
-													<TableHead className="text-right">Ações</TableHead>
-												</TableRow>
-											</TableHeader>
-											<TableBody>
-												{niches.length === 0 ? (
-													<EmptyTableState
-														colSpan={4}
-														message="Nenhum nicho cadastrado."
-													/>
-												) : (
-													niches.map((niche) => (
-														<TableRow key={niche.id}>
-															<TableCell className="font-medium">
-																{niche.name}
-															</TableCell>
-															<TableCell className="text-muted-foreground">
-																{niche.slug}
-															</TableCell>
-															<TableCell>
-																<StatusBadge active={niche.isActive} />
-															</TableCell>
-															<TableCell>
-																<div className="flex justify-end gap-2">
-																	<AnimatedActionButton
-																		size="sm"
-																		variant="default"
-																		icon={niche.isActive ? Ban : BadgeCheck}
-																		className={cn(
-																			'rounded-lg border-0 text-white',
-																			niche.isActive
-																				? 'bg-rose-600 hover:bg-rose-500'
-																				: 'bg-emerald-600 hover:bg-emerald-500',
-																		)}
-																		onClick={() =>
-																			config.updateNiche.mutate({
-																				id: niche.id,
-																				data: { is_active: !niche.isActive },
-																			})
-																		}
-																	>
-																		{niche.isActive ? 'Desativar' : 'Ativar'}
-																	</AnimatedActionButton>
-																</div>
-															</TableCell>
-														</TableRow>
-													))
-												)}
-											</TableBody>
-										</Table>
-									</TableShell>
+									<TooltipProvider>
+										<TableShell>
+											<Table>
+												<TableHeader className="bg-secondary/55">
+													<TableRow className="hover:bg-secondary/55">
+														<TableHead>Nome</TableHead>
+														<TableHead>Slug</TableHead>
+														<TableHead>Status</TableHead>
+														<TableHead className="text-right">Ações</TableHead>
+													</TableRow>
+												</TableHeader>
+												<TableBody>
+													{niches.length === 0 ? (
+														<EmptyTableState
+															colSpan={4}
+															message="Nenhum nicho cadastrado."
+														/>
+													) : (
+														niches.map((niche) => (
+															<TableRow key={niche.id}>
+																<TableCell className="font-medium">
+																	{niche.name}
+																</TableCell>
+																<TableCell className="text-muted-foreground">
+																	{niche.slug}
+																</TableCell>
+																<TableCell>
+																	<StatusBadge active={niche.isActive} />
+																</TableCell>
+																<TableCell>
+																	<div className="flex justify-end gap-2">
+																		<AnimatedActionButton
+																			size="sm"
+																			variant="default"
+																			icon={niche.isActive ? Ban : BadgeCheck}
+																			className={cn(
+																				'rounded-lg border-0 text-white',
+																				niche.isActive
+																					? 'bg-rose-600 hover:bg-rose-500'
+																					: 'bg-emerald-600 hover:bg-emerald-500',
+																			)}
+																			onClick={() =>
+																				config.updateNiche.mutate({
+																					id: niche.id,
+																					data: { is_active: !niche.isActive },
+																				})
+																			}
+																		>
+																			{niche.isActive ? 'Desativar' : 'Ativar'}
+																		</AnimatedActionButton>
+																	</div>
+																</TableCell>
+															</TableRow>
+														))
+													)}
+												</TableBody>
+											</Table>
+										</TableShell>
+									</TooltipProvider>
 								</div>
 							) : null}
 
@@ -971,9 +1023,11 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																								Ativo
 																							</Badge>
 																						) : null}
-																						<button
-																							type="button"
-																							className="cursor-pointer rounded-full p-1 text-rose-500 transition-colors hover:bg-rose-500/12 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
+																						<IconActionButton
+																							icon={X}
+																							label={`Remover nicho ${niche.name}`}
+																							variant="ghost"
+																							className="size-6 rounded-full text-rose-500 hover:bg-rose-500/12 hover:text-rose-600"
 																							disabled={
 																								!canEditUser || isActionPending
 																							}
@@ -984,9 +1038,7 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																									nicheId: niche.nicheId,
 																								})
 																							}
-																						>
-																							<X className="size-3.5" />
-																						</button>
+																						/>
 																					</div>
 																				))}
 																			</div>
@@ -1020,11 +1072,10 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																							))}
 																						</SelectContent>
 																					</Select>
-																					<AnimatedActionButton
-																						size="sm"
-																						variant="default"
+																					<IconActionButton
 																						icon={Crosshair}
-																						className="h-9 rounded-xl border-0 bg-tertiary text-tertiary-foreground hover:bg-tertiary/90"
+																						label="Definir nicho ativo"
+																						className="bg-tertiary text-tertiary-foreground hover:bg-tertiary/90"
 																						disabled={
 																							!canEditUser ||
 																							isActionPending ||
@@ -1038,9 +1089,7 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																								nicheId: selectedNicheId,
 																							})
 																						}
-																					>
-																						Definir ativo
-																					</AnimatedActionButton>
+																					/>
 																				</div>
 																			) : null}
 																		</div>
@@ -1083,10 +1132,9 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																						)}
 																					</SelectContent>
 																				</Select>
-																				<AnimatedActionButton
-																					size="sm"
-																					variant="default"
+																				<IconActionButton
 																					icon={Plus}
+																					label="Liberar nicho"
 																					className={primaryCtaClassName}
 																					disabled={
 																						!canEditUser ||
@@ -1101,9 +1149,7 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																							nicheId: selectedNicheId,
 																						})
 																					}
-																				>
-																					Liberar nicho
-																				</AnimatedActionButton>
+																				/>
 																			</div>
 																		</div>
 																	)}
@@ -1119,11 +1165,14 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																</TableCell>
 																<TableCell>
 																	<div className="flex justify-end gap-2">
-																		<AnimatedActionButton
-																			size="sm"
-																			variant="default"
+																		<IconActionButton
 																			icon={ArrowUpDown}
-																			className="rounded-lg border-0 bg-tertiary text-tertiary-foreground hover:bg-tertiary/90"
+																			label={
+																				userItem.role === 'admin'
+																					? 'Tornar usuário'
+																					: 'Tornar admin'
+																			}
+																			className="border-0 bg-tertiary text-tertiary-foreground hover:bg-tertiary/90"
 																			disabled={!canEditUser || isActionPending}
 																			onClick={() =>
 																				adminUsers.updateRole.mutate({
@@ -1134,19 +1183,18 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																							: 'admin',
 																				})
 																			}
-																		>
-																			{userItem.role === 'admin'
-																				? 'Tornar usuário'
-																				: 'Tornar admin'}
-																		</AnimatedActionButton>
-																		<AnimatedActionButton
-																			size="sm"
-																			variant="default"
+																		/>
+																		<IconActionButton
 																			icon={
 																				userItem.isDeleted ? RotateCcw : Ban
 																			}
+																			label={
+																				userItem.isDeleted
+																					? 'Restaurar'
+																					: 'Excluir'
+																			}
 																			className={cn(
-																				'rounded-lg border-0 text-white',
+																				'border-0 text-white',
 																				userItem.isDeleted
 																					? 'bg-emerald-600 hover:bg-emerald-500'
 																					: 'bg-rose-600 hover:bg-rose-500',
@@ -1158,11 +1206,7 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																					deleted: !userItem.isDeleted,
 																				})
 																			}
-																		>
-																			{userItem.isDeleted
-																				? 'Restaurar'
-																				: 'Excluir'}
-																		</AnimatedActionButton>
+																		/>
 																	</div>
 																</TableCell>
 															</TableRow>
