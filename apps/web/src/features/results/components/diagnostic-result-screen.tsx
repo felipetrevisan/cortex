@@ -92,16 +92,16 @@ const DetailDonutChart = ({
 		colorToken: string
 	}>
 }) => (
-	<Card className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
+	<Card className="h-full rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
 		<CardHeader className="p-6 pb-2">
 			<CardTitle className="flex items-center gap-2 text-lg">
 				<PieChart className="size-4 text-primary" />
 				{title}
 			</CardTitle>
 		</CardHeader>
-		<CardContent className="grid place-items-center p-6 pt-2">
+		<CardContent className="grid flex-1 place-items-center p-6 pt-2">
 			<div
-				className="relative mx-auto size-44 rounded-full"
+				className="relative mx-auto size-56 rounded-full xl:size-64"
 				style={{
 					background: buildDonutBackground(
 						segments.map((segment) => ({
@@ -111,7 +111,7 @@ const DetailDonutChart = ({
 					),
 				}}
 			>
-				<div className="absolute inset-5 rounded-full bg-card/95 backdrop-blur-lg" />
+				<div className="absolute inset-6 rounded-full bg-card/95 backdrop-blur-lg xl:inset-7" />
 			</div>
 		</CardContent>
 	</Card>
