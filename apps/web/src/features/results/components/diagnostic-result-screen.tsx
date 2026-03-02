@@ -14,9 +14,13 @@ import {
 	ArrowLeft,
 	BarChart3,
 	CheckCircle2,
+	GitCompareArrows,
 	Loader2,
 	PieChart,
+	Radar,
+	ShieldAlert,
 	Sparkles,
+	Target,
 	Trophy,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -42,6 +46,21 @@ const formatDate = (value: Date | null): string => {
 	return new Intl.DateTimeFormat('pt-BR', {
 		dateStyle: 'long',
 	}).format(value)
+}
+
+const getStructuralInsightIcon = (id: string) => {
+	switch (id) {
+		case 'asymmetry':
+			return GitCompareArrows
+		case 'risk':
+			return ShieldAlert
+		case 'coherence':
+			return Radar
+		case 'projection':
+			return Target
+		default:
+			return Sparkles
+	}
 }
 
 const DetailBarChart = ({
@@ -382,25 +401,32 @@ export const DiagnosticResultScreen = ({
 
 				{result.kind === 'phase1' ? (
 					<div className="grid gap-5 md:grid-cols-2">
-						{result.structuralInsights.map((insight) => (
-							<Card
-								key={insight.id}
-								className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]"
-							>
-								<CardHeader className="p-6 pb-3">
-									<CardDescription>{insight.valueLabel}</CardDescription>
-									<CardTitle className="text-lg">{insight.title}</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-3 p-6 pt-2">
-									<p className="text-base font-semibold text-foreground">
-										{insight.status}
-									</p>
-									<p className="text-sm leading-7 text-foreground/78">
-										{insight.description}
-									</p>
-								</CardContent>
-							</Card>
-						))}
+						{result.structuralInsights.map((insight) => {
+							const InsightIcon = getStructuralInsightIcon(insight.id)
+
+							return (
+								<Card
+									key={insight.id}
+									className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]"
+								>
+									<CardHeader className="p-6 pb-3">
+										<CardDescription>{insight.valueLabel}</CardDescription>
+										<CardTitle className="flex items-center gap-2 text-lg">
+											<InsightIcon className="size-4 text-primary" />
+											{insight.title}
+										</CardTitle>
+									</CardHeader>
+									<CardContent className="space-y-3 p-6 pt-2">
+										<p className="text-base font-semibold text-foreground">
+											{insight.status}
+										</p>
+										<p className="text-sm leading-7 text-foreground/78">
+											{insight.description}
+										</p>
+									</CardContent>
+								</Card>
+							)
+						})}
 					</div>
 				) : (
 					<Card
