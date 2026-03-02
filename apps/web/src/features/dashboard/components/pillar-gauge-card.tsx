@@ -40,9 +40,11 @@ export const PillarGaugeCard = ({
 				)}
 				style={cardStyle}
 			>
-				<CardHeader className="gap-2 p-6 pb-2">
-					<CardDescription>Pilar estrutural</CardDescription>
-					<CardTitle className="font-[var(--font-space)] text-base">
+				<CardHeader className="items-center gap-2 p-6 pb-2 text-center">
+					<CardDescription className="text-[11px] uppercase tracking-[0.18em]">
+						Pilar
+					</CardDescription>
+					<CardTitle className="font-[var(--font-space)] text-lg leading-snug">
 						{title}
 					</CardTitle>
 				</CardHeader>

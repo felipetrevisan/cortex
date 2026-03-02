@@ -1737,6 +1737,7 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 				totalPhase1Questions,
 				Object.keys(phase1Answers).length,
 			),
+			currentPillarKey: currentPhase1Pillar?.pillar ?? null,
 			currentPillarTitle: currentPhase1Pillar?.title ?? null,
 			currentPillarIndex: phase1Step ? phase1Step.pillarIndex + 1 : null,
 			totalPillars: phase1Pillars.length,

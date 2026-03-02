@@ -22,7 +22,7 @@ import {
 	X,
 } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
-import { useEffect, useId, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { IconButton } from '@/components/animate-ui/components/buttons/icon'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
@@ -64,25 +64,37 @@ const stageTitleMap: Record<string, string> = {
 	completed: 'Ciclo concluído',
 }
 
+const resolveStageTitle = (
+	flow: ReturnType<typeof useDiagnosticProcessFlow>,
+) => {
+	if (flow.stage === 'phase1') {
+		return `Pilar ${flow.phase1.currentPillarIndex} de ${flow.phase1.totalPillars} - ${flow.phase1.currentPillarTitle}`
+	}
+
+	return stageTitleMap[flow.stage] ?? 'Diagnóstico comportamental'
+}
+
 interface CircularGradientProgressProps {
 	value: number
 	size?: number
 	strokeWidth?: number
+	colorToken?: string
 }
 
 const CircularGradientProgress = ({
 	value,
 	size = 74,
 	strokeWidth = 6,
+	colorToken = 'primary',
 }: CircularGradientProgressProps) => {
 	const reducedMotion = useReducedMotion()
-	const gradientId = useId().replace(/:/g, '')
 	const progress = Math.max(0, Math.min(100, Math.round(value)))
 
 	const radius = (size - strokeWidth) / 2
 	const circumference = 2 * Math.PI * radius
 	const dashOffset = circumference * (1 - progress / 100)
 	const center = size / 2
+	const strokeColor = `var(--${colorToken})`
 
 	return (
 		<div className="relative grid place-items-center">
@@ -93,15 +105,6 @@ const CircularGradientProgress = ({
 				className="-rotate-90"
 				aria-hidden="true"
 			>
-				<defs>
-					<linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-						<stop offset="0%" stopColor="#22d3ee" />
-						<stop offset="33%" stopColor="#3b82f6" />
-						<stop offset="66%" stopColor="#8b5cf6" />
-						<stop offset="100%" stopColor="#f59e0b" />
-					</linearGradient>
-				</defs>
-
 				<circle
 					cx={center}
 					cy={center}
@@ -115,7 +118,7 @@ const CircularGradientProgress = ({
 					cy={center}
 					r={radius}
 					fill="none"
-					stroke={`url(#${gradientId})`}
+					stroke={strokeColor}
 					strokeWidth={strokeWidth}
 					strokeLinecap="round"
 					strokeDasharray={circumference}
@@ -133,6 +136,48 @@ const CircularGradientProgress = ({
 				{progress}%
 			</span>
 		</div>
+	)
+}
+
+const resolveActivePillar = (
+	flow: ReturnType<typeof useDiagnosticProcessFlow>,
+): PillarKey | null => {
+	if (flow.stage === 'phase1') {
+		return flow.phase1.currentPillarKey
+	}
+
+	if (flow.stage === 'phase2' || flow.stage === 'phase2-result') {
+		return flow.phase2.criticalPillar
+	}
+
+	if (
+		flow.stage === 'phase1-tie' ||
+		flow.stage === 'phase1-result' ||
+		flow.stage === 'protocol-reflections' ||
+		flow.stage === 'protocol-actions' ||
+		flow.stage === 'completed' ||
+		flow.stage === 'blocked-45' ||
+		flow.stage === 'blocked-90'
+	) {
+		return (
+			flow.tieBreak.selectedCriticalPillar ??
+			flow.phase1Summary?.criticalPillar ??
+			flow.phase2.criticalPillar
+		)
+	}
+
+	return null
+}
+
+const resolveProgressColorToken = (
+	flow: ReturnType<typeof useDiagnosticProcessFlow>,
+) => {
+	const activePillar = resolveActivePillar(flow)
+	if (!activePillar) return 'primary'
+
+	return (
+		PILLARS.find((pillar) => pillar.key === activePillar)?.colorToken ??
+		'primary'
 	)
 }
 
@@ -185,6 +230,8 @@ export const DiagnosticProcessModal = ({
 		await flow.saveProtocolReflections(values.reflections)
 	})
 
+	const progressColorToken = resolveProgressColorToken(flow)
+
 	return (
 		<Dialog
 			open={open}
@@ -212,16 +259,19 @@ export const DiagnosticProcessModal = ({
 						<div className="flex items-start justify-between gap-4">
 							<div className="space-y-2">
 								<CardDescription className="text-xs uppercase tracking-[0.14em]">
-									CORTEX - Ciclo {flow.cycleNumber}
+									Cortex System - Diagnóstico Estrutural
 								</CardDescription>
 
 								<CardTitle className="font-[var(--font-space)] text-xl">
-									{stageTitleMap[flow.stage] ?? 'Diagnóstico comportamental'}
+									{resolveStageTitle(flow)}
 								</CardTitle>
 							</div>
 
 							<div className="flex items-center gap-3">
-								<CircularGradientProgress value={progressPercent} />
+								<CircularGradientProgress
+									value={progressPercent}
+									colorToken={progressColorToken}
+								/>
 								<IconButton
 									variant="ghost"
 									size="sm"
@@ -252,15 +302,6 @@ export const DiagnosticProcessModal = ({
 								{flow.stage === 'phase1' ? (
 									<div className="space-y-6">
 										<div className="space-y-2">
-											<CardDescription>
-												Pilar {flow.phase1.currentPillarIndex} de{' '}
-												{flow.phase1.totalPillars} -{' '}
-												{flow.phase1.currentPillarTitle}
-											</CardDescription>
-											<p className="text-sm text-muted-foreground">
-												Pergunta {flow.phase1.answeredCount + 1} de{' '}
-												{flow.phase1.totalQuestions}
-											</p>
 											<p className="text-xl font-medium leading-relaxed">
 												{flow.phase1.currentQuestion}
 											</p>
@@ -422,16 +463,6 @@ export const DiagnosticProcessModal = ({
 								{flow.stage === 'phase2' ? (
 									<div className="space-y-6">
 										<div className="space-y-2">
-											<CardDescription>
-												Pilar crítico carregado automaticamente:{' '}
-												<strong>
-													{pillarLabel(flow.phase2.criticalPillar)}
-												</strong>
-											</CardDescription>
-											<p className="text-sm text-muted-foreground">
-												Pergunta {flow.phase2.currentQuestionPosition} de{' '}
-												{flow.phase2.totalQuestions}
-											</p>
 											<p className="text-xl font-medium leading-relaxed">
 												{flow.phase2.currentQuestion?.title}
 											</p>
