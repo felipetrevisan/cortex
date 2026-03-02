@@ -18,6 +18,12 @@ export interface CortexAchievementItem {
 	status: CortexAchievementStatus
 }
 
+interface DashboardCtaContent {
+	label: string
+	title: string
+	description: string
+}
+
 const resolveAchievements = ({
 	hasNicheAccess,
 	cycle,
@@ -85,6 +91,116 @@ const resolveAchievements = ({
 	]
 }
 
+const getActiveAchievement = (achievements: CortexAchievementItem[]) =>
+	achievements.find((item) => item.status === 'active') ?? null
+
+const resolveAchievementCta = ({
+	activeAchievement,
+	cycleStatus,
+	hasStartedDiagnostic,
+	phase2ReevaluationDays,
+	newCycleDays,
+	temporalRules,
+	isCycleCompleted,
+	repurchasePriceLabel,
+	repurchaseCheckoutUrl,
+}: {
+	activeAchievement: CortexAchievementItem | null
+	cycleStatus: string | null
+	hasStartedDiagnostic: boolean
+	phase2ReevaluationDays?: number
+	newCycleDays?: number
+	temporalRules?: ReturnType<typeof computeDiagnosticTemporalRules>
+	isCycleCompleted: boolean
+	repurchasePriceLabel?: string | null
+	repurchaseCheckoutUrl?: string | null
+}): DashboardCtaContent => {
+	if (!hasStartedDiagnostic) {
+		return {
+			label: 'Iniciar Diagnóstico',
+			title: 'Diagnóstico',
+			description:
+				'Comece sua primeira avaliação estrutural caso não tenha iniciado o diagnóstico.',
+		}
+	}
+
+	if (activeAchievement?.key === 'diagnostic') {
+		return {
+			label: 'Continuar Diagnóstico',
+			title: 'Diagnóstico',
+			description:
+				'Continue sua avaliação estrutural para identificar o pilar crítico e liberar o próximo nível.',
+		}
+	}
+
+	if (activeAchievement?.key === 'next-level') {
+		const isInProgress = cycleStatus === 'phase2_in_progress'
+		return {
+			label: isInProgress ? 'Continuar Próximo Nível' : 'Iniciar Próximo Nível',
+			title: 'Próximo Nível',
+			description:
+				'Avance para a Avaliação Aprofundada do pilar crítico e refine o seu diagnóstico.',
+		}
+	}
+
+	if (activeAchievement?.key === 'protocol') {
+		return {
+			label: 'Continuar Protocolo',
+			title: 'Protocolo',
+			description:
+				'Execute as reflexões e ações do protocolo para concluir este ciclo do CORTEX.',
+		}
+	}
+
+	if (activeAchievement?.key === 'reevaluation' && temporalRules) {
+		return {
+			label: 'Iniciar Reavaliação',
+			title: 'Reavaliação',
+			description: `${phase2ReevaluationDays} dias concluídos desde o protocolo. Refaça sua Avaliação Aprofundada.`,
+		}
+	}
+
+	if (
+		temporalRules?.canStartNewCycle &&
+		repurchasePriceLabel &&
+		repurchaseCheckoutUrl
+	) {
+		return {
+			label: `Pagar ${repurchasePriceLabel} para refazer`,
+			title: 'Refazer CORTEX',
+			description: `Seu novo ciclo já pode ser liberado. Conclua o pagamento de ${repurchasePriceLabel} para refazer todo o CORTEX neste nicho.`,
+		}
+	}
+
+	if (temporalRules?.canStartNewCycle) {
+		return {
+			label: 'Iniciar Novo Diagnóstico',
+			title: 'Novo Diagnóstico',
+			description:
+				'Novo ciclo liberado. Refaça a Fase 1 para iniciar um diagnóstico completo.',
+		}
+	}
+
+	if (isCycleCompleted && temporalRules) {
+		return {
+			label: 'Aguardar Reavaliação',
+			title: 'Reavaliação',
+			description:
+				temporalRules.phase2Reevaluation.message ??
+				`Reavaliação disponível em ${phase2ReevaluationDays} dias, após concluir o Protocolo de Ação.`,
+		}
+	}
+
+	return {
+		label: 'Continuar Diagnóstico',
+		title: 'Diagnóstico',
+		description:
+			newCycleDays != null
+				? `Siga com a etapa ativa do seu ciclo. Novo diagnóstico estrutural disponível em ${newCycleDays} dias.`
+				: 'Retome sua avaliação de onde parou.',
+	}
+}
+
 export const useDashboardData = () => {
 	const { user } = useAuth()
 	const nicheAccess = useActiveNicheAccess()
@@ -150,6 +266,20 @@ export const useDashboardData = () => {
 		}
 
 		if (!cycle) {
+			const achievements = resolveAchievements({
+				hasNicheAccess: true,
+				cycle: null,
+				canRunReevaluation: false,
+			})
+			const cta = resolveAchievementCta({
+				activeAchievement: getActiveAchievement(achievements),
+				cycleStatus: null,
+				hasStartedDiagnostic: false,
+				phase2ReevaluationDays: activeNiche.phase2ReevaluationDays,
+				newCycleDays: activeNiche.newCycleDays,
+				isCycleCompleted: false,
+			})
+
 			return {
 				greetingName: profileQuery.data?.fullName ?? 'Usuário',
 				avatarUrl: profileQuery.data?.avatarUrl ?? null,
@@ -159,10 +289,9 @@ export const useDashboardData = () => {
 				activeNicheSlug: activeNiche.slug,
 				availableNiches: nicheAccess.availableNiches,
 				hasStartedDiagnostic: false,
-				ctaLabel: 'Iniciar Diagnóstico',
-				ctaDescription:
-					'Comece sua primeira avaliação estrutural caso não tenha iniciado o diagnóstico.',
-				ctaTitle: 'Iniciar Diagnóstico',
+				ctaLabel: cta.label,
+				ctaDescription: cta.description,
+				ctaTitle: cta.title,
 				statusCards: {
 					current: 'pendente' as const,
 					reeval45: 'bloqueada' as const,
@@ -186,11 +315,7 @@ export const useDashboardData = () => {
 				history: comparativeQuery.data ?? [],
 				comparative: comparativeQuery.report,
 				repurchaseOffer: null,
-				achievements: resolveAchievements({
-					hasNicheAccess: true,
-					cycle: null,
-					canRunReevaluation: false,
-				}),
+				achievements,
 			}
 		}
 
@@ -202,6 +327,11 @@ export const useDashboardData = () => {
 			newStructuralDiagnosisDays: activeNiche.newCycleDays,
 		})
 		const isCycleCompleted = Boolean(cycle.timeline.protocolCompletedAt)
+		const achievements = resolveAchievements({
+			hasNicheAccess: true,
+			cycle,
+			canRunReevaluation: temporalRules.canRunPhase2Reevaluation,
+		})
 		const repurchasePriceLabel =
 			activeNiche.repurchasePriceCents == null
 				? null
@@ -209,6 +339,17 @@ export const useDashboardData = () => {
 						style: 'currency',
 						currency: 'BRL',
 					}).format(activeNiche.repurchasePriceCents / 100)
+		const cta = resolveAchievementCta({
+			activeAchievement: getActiveAchievement(achievements),
+			cycleStatus: cycle.status,
+			hasStartedDiagnostic: true,
+			phase2ReevaluationDays: activeNiche.phase2ReevaluationDays,
+			newCycleDays: activeNiche.newCycleDays,
+			temporalRules,
+			isCycleCompleted,
+			repurchasePriceLabel,
+			repurchaseCheckoutUrl: activeNiche.repurchaseCheckoutUrl,
+		})
 
 		return {
 			greetingName: profileQuery.data?.fullName ?? 'Usuário',
@@ -219,42 +360,9 @@ export const useDashboardData = () => {
 			activeNicheSlug: activeNiche.slug,
 			availableNiches: nicheAccess.availableNiches,
 			hasStartedDiagnostic: true,
-			ctaLabel:
-				temporalRules.canStartNewCycle &&
-				activeNiche.repurchasePriceCents != null &&
-				activeNiche.repurchaseCheckoutUrl
-					? `Pagar ${repurchasePriceLabel} para refazer`
-					: temporalRules.canRunPhase2Reevaluation
-						? 'Refazer Avaliação Aprofundada'
-						: temporalRules.canStartNewCycle
-							? 'Iniciar Novo Diagnóstico'
-							: isCycleCompleted
-								? 'Aguardar Reavaliação'
-								: 'Continuar Diagnóstico',
-			ctaTitle:
-				temporalRules.canStartNewCycle &&
-				activeNiche.repurchasePriceCents != null &&
-				activeNiche.repurchaseCheckoutUrl
-					? 'Refazer CORTEX'
-					: temporalRules.canRunPhase2Reevaluation
-						? 'Refazer Avaliação Aprofundada'
-						: temporalRules.canStartNewCycle
-							? 'Iniciar Novo Diagnóstico'
-							: isCycleCompleted
-								? 'Ciclo Concluído'
-								: 'Continuar Diagnóstico',
-			ctaDescription:
-				temporalRules.canStartNewCycle &&
-				activeNiche.repurchasePriceCents != null &&
-				activeNiche.repurchaseCheckoutUrl
-					? `Seu novo ciclo já pode ser liberado. Conclua o pagamento de ${repurchasePriceLabel} para refazer todo o CORTEX neste nicho.`
-					: temporalRules.canRunPhase2Reevaluation
-						? `${activeNiche.phase2ReevaluationDays} dias concluídos desde o protocolo. Refaça sua Avaliação Aprofundada.`
-						: temporalRules.canStartNewCycle
-							? 'Novo ciclo liberado. Refaça a Fase 1 para iniciar um diagnóstico completo.'
-							: isCycleCompleted
-								? temporalRules.phase2Reevaluation.message
-								: 'Retome sua avaliação de onde parou.',
+			ctaLabel: cta.label,
+			ctaTitle: cta.title,
+			ctaDescription: cta.description,
 			statusCards: {
 				current: cycle.timeline.protocolCompletedAt ? 'concluida' : 'pendente',
 				reeval45: cycle.timeline.reeval45CompletedAt
@@ -292,11 +400,7 @@ export const useDashboardData = () => {
 							checkoutUrl: activeNiche.repurchaseCheckoutUrl,
 						}
 					: null,
-			achievements: resolveAchievements({
-				hasNicheAccess: true,
-				cycle,
-				canRunReevaluation: temporalRules.canRunPhase2Reevaluation,
-			}),
+			achievements,
 		}
 	}, [
 		comparativeQuery.data,

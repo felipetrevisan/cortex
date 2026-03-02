@@ -61,8 +61,8 @@ const stageTitleMap: Record<string, string> = {
 	'phase1-result': 'Resumo Resultado Fase 1',
 	phase2: 'Fase 2 - Diagnóstico Aprofundado',
 	'phase2-result': 'Resumo Resultado Fase 2',
-	'protocol-reflections': 'Protocolo de ação - Reflexões',
-	'protocol-actions': 'Protocolo de ação - Execução',
+	'protocol-reflections': 'Protocolo de Ação - Perguntas',
+	'protocol-actions': 'Protocolo de Ação - Execução',
 	'blocked-45': 'Reavaliação bloqueada',
 	'blocked-90': 'Novo ciclo bloqueado',
 	completed: 'Ciclo concluído',
@@ -935,8 +935,7 @@ export const DiagnosticProcessModal = ({
 								{flow.stage === 'protocol-reflections' ? (
 									<form className="space-y-5" onSubmit={onSubmitReflections}>
 										<p className="text-sm text-muted-foreground">
-											Responda as 5 perguntas reflexivas para liberar as ações
-											práticas.
+											Responda as 5 perguntas para liberar as ações práticas.
 										</p>
 
 										{flow.protocolMeta.reflectionsPrompts.map(

@@ -105,6 +105,19 @@ export const DashboardScreen = () => {
 	const nicheAccess = useActiveNicheAccess()
 	const { isLoading, viewModel } = useDashboardData()
 
+	const handlePrimaryAction = () => {
+		if (viewModel.repurchaseOffer?.checkoutUrl) {
+			window.open(
+				viewModel.repurchaseOffer.checkoutUrl,
+				'_blank',
+				'noopener,noreferrer',
+			)
+			return
+		}
+
+		setIsDiagnosticModalOpen(true)
+	}
+
 	if (auth.isLoading || isLoading) {
 		return (
 			<main className="grid min-h-dvh place-items-center">
@@ -226,10 +239,14 @@ export const DashboardScreen = () => {
 							{viewModel.achievements.map((item) => {
 								const Icon = achievementIconMap[item.key]
 								const isLocked = item.status === 'locked'
-								return (
+								const isActive = item.status === 'active'
+								const cardContent = (
 									<Card
-										key={item.key}
-										className={`rounded-2xl transition-all duration-200 hover:-translate-y-0.5 ${achievementCardStyles[item.status]}`}
+										className={`rounded-2xl transition-all duration-200 hover:-translate-y-0.5 ${achievementCardStyles[item.status]} ${
+											isActive
+												? 'cursor-pointer hover:shadow-[0_0_0_1px_color-mix(in_oklch,var(--primary)_30%,transparent),0_0_34px_color-mix(in_oklch,var(--primary)_42%,transparent)]'
+												: ''
+										}`}
 									>
 										<CardContent className="flex min-h-36 flex-col items-center justify-center gap-3 p-5 text-center">
 											<div
@@ -254,6 +271,24 @@ export const DashboardScreen = () => {
 										</CardContent>
 									</Card>
 								)
+
+								if (isActive) {
+									return (
+										<motion.button
+											key={item.key}
+											type="button"
+											className="text-left"
+											whileHover={{ y: -2 }}
+											whileTap={{ scale: 0.985 }}
+											onClick={handlePrimaryAction}
+											aria-label={`Abrir etapa ${item.title}`}
+										>
+											{cardContent}
+										</motion.button>
+									)
+								}
+
+								return <div key={item.key}>{cardContent}</div>
 							})}
 						</div>
 					</section>
@@ -303,18 +338,7 @@ export const DashboardScreen = () => {
 								<Button
 									className="group h-11 w-full rounded-2xl bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:w-auto"
 									disabled={!viewModel.hasNicheAccess}
-									onClick={() => {
-										if (viewModel.repurchaseOffer?.checkoutUrl) {
-											window.open(
-												viewModel.repurchaseOffer.checkoutUrl,
-												'_blank',
-												'noopener,noreferrer',
-											)
-											return
-										}
-
-										setIsDiagnosticModalOpen(true)
-									}}
+									onClick={handlePrimaryAction}
 								>
 									{viewModel.ctaLabel}
 									<ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
