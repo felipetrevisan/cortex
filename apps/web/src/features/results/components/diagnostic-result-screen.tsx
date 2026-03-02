@@ -381,61 +381,26 @@ export const DiagnosticResultScreen = ({
 				</div>
 
 				{result.kind === 'phase1' ? (
-					<div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
-						<Card className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
-							<CardHeader className="p-6 pb-3">
-								<CardDescription>Interpretação detalhada</CardDescription>
-								<CardTitle className="text-lg">
-									Leitura pilar por pilar
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="grid gap-4 p-6 pt-2">
-								{result.pillarItems.map((item) => (
-									<div
-										key={item.key}
-										className="rounded-2xl border p-4"
-										style={{
-											borderColor: `color-mix(in oklch, var(--${item.colorToken}) 44%, transparent)`,
-											background: `linear-gradient(145deg, color-mix(in oklch, var(--${item.colorToken}) 10%, var(--card)) 0%, color-mix(in oklch, var(--${item.colorToken}) 4%, var(--card)) 100%)`,
-										}}
-									>
-										<div className="flex items-center justify-between gap-3">
-											<p className="font-semibold">{item.title}</p>
-											<span className="text-sm font-semibold">
-												{item.value}%
-											</span>
-										</div>
-										<p className="mt-2 text-sm text-foreground/78">
-											{item.summary}
-										</p>
-									</div>
-								))}
-							</CardContent>
-						</Card>
-
-						<Card className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
-							<CardHeader className="p-6 pb-3">
-								<CardDescription>Distribuição das respostas</CardDescription>
-								<CardTitle className="text-lg">Escala 1 a 6</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-3 p-6 pt-2">
-								{result.answerDistribution.map((item) => (
-									<div
-										key={item.value}
-										className="rounded-2xl border border-border/70 bg-background/55 px-4 py-3"
-									>
-										<div className="flex items-center justify-between">
-											<span className="text-sm font-medium">
-												Resposta {item.value}
-											</span>
-											<span className="text-sm font-semibold">
-												{item.total}
-											</span>
-										</div>
-									</div>
-								))}
-							</CardContent>
-						</Card>
+					<div className="grid gap-5 md:grid-cols-2">
+						{result.structuralInsights.map((insight) => (
+							<Card
+								key={insight.id}
+								className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]"
+							>
+								<CardHeader className="p-6 pb-3">
+									<CardDescription>{insight.valueLabel}</CardDescription>
+									<CardTitle className="text-lg">{insight.title}</CardTitle>
+								</CardHeader>
+								<CardContent className="space-y-3 p-6 pt-2">
+									<p className="text-base font-semibold text-foreground">
+										{insight.status}
+									</p>
+									<p className="text-sm leading-7 text-foreground/78">
+										{insight.description}
+									</p>
+								</CardContent>
+							</Card>
+						))}
 					</div>
 				) : (
 					<Card

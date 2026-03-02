@@ -19,11 +19,6 @@ import {
 import { getSupabaseClient } from '@/lib/supabase/client'
 import type { ResultPhaseSlug } from '../lib/result-routes'
 
-type Phase1ResponseRow = Pick<
-	Tables<'phase1_responses'>,
-	'pillar' | 'question_number' | 'score'
->
-
 type Phase2ResponseRow = Pick<
 	Tables<'phase2_responses'>,
 	'question_type' | 'question_number' | 'score'
@@ -41,6 +36,199 @@ const pillarTitle = (pillar: PillarKey | null): string =>
 const getMaturitySummaryText = (value: number): string => {
 	const maturity = classifyMaturity(value)
 	return `${maturity.label}: ${maturity.description}`
+}
+
+interface StructuralInsight {
+	id: 'asymmetry' | 'risk' | 'coherence' | 'projection'
+	title: string
+	status: string
+	valueLabel: string
+	description: string
+}
+
+const getAsymmetryInsight = (
+	values: number[],
+): Pick<StructuralInsight, 'status' | 'valueLabel' | 'description'> => {
+	const highest = Math.max(...values)
+	const lowest = Math.min(...values)
+	const asymmetry = highest - lowest
+
+	if (asymmetry <= 15) {
+		return {
+			status: 'Estrutura Coesa',
+			valueLabel: `${asymmetry} pontos`,
+			description:
+				'Os pilares apresentam baixa dispersão estrutural. Isso indica integração funcional entre os componentes, com distribuição equilibrada de força. A tendência é estabilidade operacional, com menor necessidade de compensação entre áreas.',
+		}
+	}
+
+	if (asymmetry <= 30) {
+		return {
+			status: 'Leve Assimetria',
+			valueLabel: `${asymmetry} pontos`,
+			description:
+				'Há variação mensurável entre pilares, ainda dentro de zona funcional. O arranjo opera com leve desbalanceamento, exigindo ajustes pontuais para preservar consistência.',
+		}
+	}
+
+	if (asymmetry <= 50) {
+		return {
+			status: 'Assimetria Moderada',
+			valueLabel: `${asymmetry} pontos`,
+			description:
+				'A diferença entre os pilares é significativa. O funcionamento ocorre por meio de compensações internas, e não por integração plena. Esse padrão eleva o custo operacional e reduz eficiência global.',
+		}
+	}
+
+	return {
+		status: 'Alta Assimetria',
+		valueLabel: `${asymmetry} pontos`,
+		description:
+			'A dispersão entre pilares é elevada. As áreas operam em níveis substancialmente distintos, caracterizando desequilíbrio sistêmico. Esse padrão compromete previsibilidade e favorece ciclos recorrentes de instabilidade.',
+	}
+}
+
+const getOperationalRiskInsight = (
+	values: number[],
+): Pick<StructuralInsight, 'status' | 'valueLabel' | 'description'> => {
+	const lowest = Math.min(...values)
+	const asymmetry = Math.max(...values) - lowest
+
+	if (lowest >= 60 && asymmetry <= 30) {
+		return {
+			status: 'Risco Baixo',
+			valueLabel: `Base mínima ${lowest}%`,
+			description:
+				'O arranjo atual sustenta funcionamento estável. A probabilidade de ruptura de desempenho é reduzida, salvo sob estresse externo significativo.',
+		}
+	}
+
+	if (lowest >= 40 && asymmetry <= 50) {
+		return {
+			status: 'Risco Moderado',
+			valueLabel: `Base mínima ${lowest}%`,
+			description:
+				'Há vulnerabilidade identificável. Sob aumento de exigência ou pressão contextual, tende a ocorrer oscilação mensurável de desempenho.',
+		}
+	}
+
+	return {
+		status: 'Risco Alto',
+		valueLabel: `Base mínima ${lowest}%`,
+		description:
+			'A configuração apresenta fragilidade relevante. A combinação entre baixa base funcional e alta dispersão amplia o risco de inconsistência recorrente e perda de previsibilidade.',
+	}
+}
+
+const getCoherenceInsight = (
+	values: number[],
+): Pick<StructuralInsight, 'status' | 'valueLabel' | 'description'> => {
+	const average = values.reduce((sum, value) => sum + value, 0) / values.length
+	const meanDeviation =
+		values.reduce((sum, value) => sum + Math.abs(value - average), 0) /
+		values.length
+	const roundedDeviation = Math.round(meanDeviation)
+
+	if (meanDeviation <= 10) {
+		return {
+			status: 'Alta Coerência',
+			valueLabel: `Desvio médio ${roundedDeviation}`,
+			description:
+				'Há alinhamento interno consistente. Os pilares operam de forma interdependente, favorecendo eficiência e estabilidade.',
+		}
+	}
+
+	if (meanDeviation <= 20) {
+		return {
+			status: 'Coerência Moderada',
+			valueLabel: `Desvio médio ${roundedDeviation}`,
+			description:
+				'O alinhamento é parcial. Embora exista integração funcional, a variação entre áreas exige compensação contínua para manutenção de desempenho.',
+		}
+	}
+
+	return {
+		status: 'Estrutura Fragmentada',
+		valueLabel: `Desvio médio ${roundedDeviation}`,
+		description:
+			'Observa-se fragmentação estrutural. As áreas não convergem em intensidade funcional, aumentando fricção interna e elevando o esforço necessário para sustentar consistência.',
+	}
+}
+
+const getLimiterLabel = (pillar: PillarKey | null): string => {
+	switch (pillar) {
+		case 'clarity':
+			return 'direcionamento estratégico'
+		case 'structure':
+			return 'estrutura operacional'
+		case 'execution':
+			return 'execução consistente'
+		case 'emotional':
+			return 'estabilidade emocional'
+		default:
+			return 'estrutura operacional'
+	}
+}
+
+const getProjectionInsight = (input: {
+	criticalPillar: PillarKey | null
+	riskStatus: string
+}): Pick<StructuralInsight, 'status' | 'valueLabel' | 'description'> => {
+	const limiter = getLimiterLabel(input.criticalPillar)
+	let description = `Se o padrão atual se mantiver, o principal limitador continuará sendo ${limiter}. A tendência é manutenção do ciclo vigente, com desempenho dependente de esforço compensatório.`
+
+	if (input.riskStatus === 'Risco Alto') {
+		description +=
+			' Sem intervenção direcionada, o padrão tende a se consolidar, reduzindo progressivamente eficiência e estabilidade operacional.'
+	}
+
+	if (input.riskStatus === 'Risco Moderado') {
+		description +=
+			' Ajustes específicos podem alterar a trajetória atual e reduzir assimetria no curto prazo.'
+	}
+
+	return {
+		status: 'Projeção do Ciclo Atual',
+		valueLabel: `Foco limitador: ${limiter}`,
+		description,
+	}
+}
+
+const buildStructuralInsights = (input: {
+	pillars: Record<PillarKey, number>
+	criticalPillar: PillarKey | null
+}): StructuralInsight[] => {
+	const values = PILLARS.map((pillar) => input.pillars[pillar.key])
+	const asymmetry = getAsymmetryInsight(values)
+	const risk = getOperationalRiskInsight(values)
+	const coherence = getCoherenceInsight(values)
+	const projection = getProjectionInsight({
+		criticalPillar: input.criticalPillar,
+		riskStatus: risk.status,
+	})
+
+	return [
+		{
+			id: 'asymmetry',
+			title: 'Índice de Assimetria Estrutural',
+			...asymmetry,
+		},
+		{
+			id: 'risk',
+			title: 'Nível de Risco Operacional',
+			...risk,
+		},
+		{
+			id: 'coherence',
+			title: 'Coerência Interna do Sistema',
+			...coherence,
+		},
+		{
+			id: 'projection',
+			title: 'Projeção do Ciclo Atual',
+			...projection,
+		},
+	]
 }
 
 const getPhase1OverviewText = (input: {
@@ -132,17 +320,13 @@ interface Phase1DetailedResult {
 		value: number
 		colorToken: string
 		summary: string
-		questionCount: number
-	}>
-	answerDistribution: Array<{
-		value: number
-		total: number
 	}>
 	donutSegments: Array<{
 		label: string
 		value: number
 		colorToken: string
 	}>
+	structuralInsights: StructuralInsight[]
 }
 
 interface Phase2DetailedResult {
@@ -179,49 +363,43 @@ export interface DiagnosticResultViewModel {
 
 const buildPhase1Result = (input: {
 	cycle: ReturnType<typeof mapDiagnosticCycle>
-	phase1Rows: Phase1ResponseRow[]
-	phase1QuestionCountByPillar: Map<PillarKey, number>
 }): Phase1DetailedResult => {
-	const answerDistribution = [1, 2, 3, 4, 5, 6].map((value) => ({
-		value,
-		total: input.phase1Rows.filter((row) => row.score === value).length,
-	}))
-
 	const pillarItems = PILLARS.map((pillar) => ({
 		key: pillar.key,
 		title: pillar.title,
 		value: input.cycle.pillars[pillar.key],
 		colorToken: pillar.colorToken,
 		summary: getMaturitySummaryText(input.cycle.pillars[pillar.key]),
-		questionCount: input.phase1QuestionCountByPillar.get(pillar.key) ?? 0,
 	}))
+
+	const criticalPillar = isPillarKey(input.cycle.highlights.critical)
+		? input.cycle.highlights.critical
+		: null
+	const strongPillar = isPillarKey(input.cycle.highlights.strong)
+		? input.cycle.highlights.strong
+		: null
 
 	return {
 		kind: 'phase1',
 		completedAt: input.cycle.timeline.phase1CompletedAt,
 		generalIndex: input.cycle.indexes.general,
-		criticalPillar: isPillarKey(input.cycle.highlights.critical)
-			? input.cycle.highlights.critical
-			: null,
-		strongPillar: isPillarKey(input.cycle.highlights.strong)
-			? input.cycle.highlights.strong
-			: null,
+		criticalPillar,
+		strongPillar,
 		overviewText: getPhase1OverviewText({
 			generalIndex: input.cycle.indexes.general,
-			criticalPillar: isPillarKey(input.cycle.highlights.critical)
-				? input.cycle.highlights.critical
-				: null,
-			strongPillar: isPillarKey(input.cycle.highlights.strong)
-				? input.cycle.highlights.strong
-				: null,
+			criticalPillar,
+			strongPillar,
 		}),
 		pillarItems,
-		answerDistribution,
 		donutSegments: pillarItems.map((item) => ({
 			label: item.title,
 			value: item.value,
 			colorToken: item.colorToken,
 		})),
+		structuralInsights: buildStructuralInsights({
+			pillars: input.cycle.pillars,
+			criticalPillar,
+		}),
 	}
 }
 
@@ -339,7 +517,6 @@ export const useDiagnosticResultQuery = (
 
 			const [
 				{ data: cycleRow, error: cycleError },
-				{ data: phase1Rows, error: phase1Error },
 				{ data: phase2Rows, error: phase2Error },
 			] = await Promise.all([
 				supabase
@@ -350,13 +527,6 @@ export const useDiagnosticResultQuery = (
 					.eq('niche_id', activeNiche.nicheId)
 					.single(),
 				supabase
-					.from('phase1_responses')
-					.select('pillar, question_number, score')
-					.eq('cycle_id', cycleId)
-					.eq('user_id', user.id)
-					.eq('niche_id', activeNiche.nicheId)
-					.order('question_number', { ascending: true }),
-				supabase
 					.from('phase2_responses')
 					.select('question_type, question_number, score')
 					.eq('cycle_id', cycleId)
@@ -366,18 +536,9 @@ export const useDiagnosticResultQuery = (
 			])
 
 			if (cycleError) throw new Error(cycleError.message)
-			if (phase1Error) throw new Error(phase1Error.message)
 			if (phase2Error) throw new Error(phase2Error.message)
 
 			const cycle = mapDiagnosticCycle(cycleRow)
-			const phase1QuestionCountByPillar = new Map<PillarKey, number>(
-				PILLARS.map((pillar) => [
-					pillar.key,
-					blueprintQuery.data?.phase1Pillars.find(
-						(item) => item.pillar === pillar.key,
-					)?.questions.length ?? 0,
-				]),
-			)
 
 			if (phase === 'phase-1') {
 				return {
@@ -389,8 +550,6 @@ export const useDiagnosticResultQuery = (
 					completedAt: cycle.timeline.phase1CompletedAt,
 					result: buildPhase1Result({
 						cycle,
-						phase1Rows: (phase1Rows ?? []) as Phase1ResponseRow[],
-						phase1QuestionCountByPillar,
 					}),
 				}
 			}
