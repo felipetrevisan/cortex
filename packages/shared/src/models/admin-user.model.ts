@@ -11,6 +11,7 @@ export interface AdminUserModel {
 	email: string | null
 	role: UserRole
 	avatarUrl: string | null
+	activeNicheId: string | null
 	authProvider: string
 	isDeleted: boolean
 	deletedAt: Date | null
@@ -36,6 +37,7 @@ export const mapAdminUser = (row: AdminUserRow): AdminUserModel => ({
 	email: row.email?.trim() || null,
 	role: normalizeRole(row.role),
 	avatarUrl: row.avatar_url?.trim() || null,
+	activeNicheId: row.active_niche_id,
 	authProvider: normalizeProvider(row.auth_provider),
 	isDeleted: row.is_deleted,
 	deletedAt: row.deleted_at ? new Date(row.deleted_at) : null,

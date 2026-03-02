@@ -16,6 +16,7 @@ import {
 	Ban,
 	Blocks,
 	CircleHelp,
+	Crosshair,
 	Layers3,
 	Loader2,
 	type LucideIcon,
@@ -26,6 +27,7 @@ import {
 	Save,
 	ShieldAlert,
 	Users,
+	X,
 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
@@ -366,6 +368,9 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 	const [isPhaseModalOpen, setIsPhaseModalOpen] = useState(false)
 	const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false)
 	const [isOptionModalOpen, setIsOptionModalOpen] = useState(false)
+	const [pendingUserNiches, setPendingUserNiches] = useState<
+		Record<string, string>
+	>({})
 
 	const nicheForm = useForm<NicheFormValues>({
 		defaultValues: { name: '', description: '' },
@@ -414,11 +419,22 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 		byProvider: [],
 	}
 	const signedUserId = access.auth.user?.id ?? null
+	const availableNichesForAssignment = useMemo(
+		() => niches.filter((niche) => niche.isActive),
+		[niches],
+	)
 
 	const nicheNameById = useMemo(
 		() => new Map(niches.map((niche) => [niche.id, niche.name])),
 		[niches],
 	)
+
+	const setPendingNicheForUser = (userId: string, nicheId: string) => {
+		setPendingUserNiches((current) => ({
+			...current,
+			[userId]: nicheId,
+		}))
+	}
 	const phaseNameById = useMemo(
 		() => new Map(phases.map((phase) => [phase.id, phase.title])),
 		[phases],
@@ -462,9 +478,9 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 						<CardHeader>
 							<CardTitle>Configuração do banco pendente</CardTitle>
 							<CardDescription>
-								Execute as migrations pendentes em `supabase/migrations`
-								(incluindo admin e users management) para habilitar o painel
-								admin dinâmico.
+								A estrutura necessária para este painel ainda não está
+								disponível neste ambiente. Conclua a configuração interna do
+								sistema para liberar os recursos administrativos.
 							</CardDescription>
 						</CardHeader>
 					</Card>
@@ -872,6 +888,7 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 													<TableHead>E-mail</TableHead>
 													<TableHead>Método</TableHead>
 													<TableHead>Role</TableHead>
+													<TableHead>Nichos</TableHead>
 													<TableHead>Status</TableHead>
 													<TableHead>Criado em</TableHead>
 													<TableHead>Deletado?</TableHead>
@@ -881,7 +898,7 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 											<TableBody>
 												{users.length === 0 ? (
 													<EmptyTableState
-														colSpan={8}
+														colSpan={9}
 														message="Nenhum usuário cadastrado."
 													/>
 												) : (
@@ -889,7 +906,19 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 														const canEditUser = signedUserId !== userItem.userId
 														const isActionPending =
 															adminUsers.updateRole.isPending ||
-															adminUsers.setSoftDelete.isPending
+															adminUsers.setSoftDelete.isPending ||
+															adminUsers.assignNiche.isPending ||
+															adminUsers.setActiveNiche.isPending ||
+															adminUsers.revokeNiche.isPending
+														const selectedNicheId =
+															pendingUserNiches[userItem.userId] ??
+															(userItem.niches.length > 0
+																? (userItem.activeNicheId ??
+																	userItem.niches[0]?.nicheId ??
+																	'')
+																: (availableNichesForAssignment[0]?.id ??
+																	'')) ??
+															''
 
 														return (
 															<TableRow key={userItem.id}>
@@ -914,6 +943,170 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																			? 'Admin'
 																			: 'Usuário'}
 																	</Badge>
+																</TableCell>
+																<TableCell className="min-w-[260px]">
+																	{userItem.niches.length > 0 ? (
+																		<div className="flex flex-col gap-3">
+																			<div className="flex flex-wrap gap-2">
+																				{userItem.niches.map((niche) => (
+																					<div
+																						key={niche.accessId}
+																						className={cn(
+																							'inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs shadow-sm',
+																							userItem.activeNicheId ===
+																								niche.nicheId
+																								? 'border-primary/45 bg-primary-soft text-primary'
+																								: 'border-border/80 bg-secondary/55 text-secondary-foreground',
+																						)}
+																					>
+																						<span className="font-medium">
+																							{niche.name}
+																						</span>
+																						{userItem.activeNicheId ===
+																						niche.nicheId ? (
+																							<Badge
+																								variant="default"
+																								className="rounded-full px-2 py-0.5 text-[10px]"
+																							>
+																								Ativo
+																							</Badge>
+																						) : null}
+																						<button
+																							type="button"
+																							className="cursor-pointer rounded-full p-1 text-rose-500 transition-colors hover:bg-rose-500/12 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
+																							disabled={
+																								!canEditUser || isActionPending
+																							}
+																							onClick={() =>
+																								adminUsers.revokeNiche.mutate({
+																									accessId: niche.accessId,
+																									userId: userItem.userId,
+																									nicheId: niche.nicheId,
+																								})
+																							}
+																						>
+																							<X className="size-3.5" />
+																						</button>
+																					</div>
+																				))}
+																			</div>
+																			{userItem.niches.length > 1 ? (
+																				<div className="flex flex-wrap items-center gap-2">
+																					<Select
+																						value={selectedNicheId}
+																						onValueChange={(value) =>
+																							setPendingNicheForUser(
+																								userItem.userId,
+																								value,
+																							)
+																						}
+																					>
+																						<SelectTrigger
+																							className={cn(
+																								selectTriggerClassName,
+																								'h-9 w-[180px] min-w-[180px]',
+																							)}
+																						>
+																							<SelectValue placeholder="Definir nicho ativo" />
+																						</SelectTrigger>
+																						<SelectContent>
+																							{userItem.niches.map((niche) => (
+																								<SelectItem
+																									key={niche.accessId}
+																									value={niche.nicheId}
+																								>
+																									{niche.name}
+																								</SelectItem>
+																							))}
+																						</SelectContent>
+																					</Select>
+																					<AnimatedActionButton
+																						size="sm"
+																						variant="default"
+																						icon={Crosshair}
+																						className="h-9 rounded-xl border-0 bg-tertiary text-tertiary-foreground hover:bg-tertiary/90"
+																						disabled={
+																							!canEditUser ||
+																							isActionPending ||
+																							!selectedNicheId ||
+																							selectedNicheId ===
+																								userItem.activeNicheId
+																						}
+																						onClick={() =>
+																							adminUsers.setActiveNiche.mutate({
+																								userId: userItem.userId,
+																								nicheId: selectedNicheId,
+																							})
+																						}
+																					>
+																						Definir ativo
+																					</AnimatedActionButton>
+																				</div>
+																			) : null}
+																		</div>
+																	) : (
+																		<div className="flex flex-col gap-2">
+																			<Badge
+																				variant="outline"
+																				className="w-fit rounded-full px-2.5 py-1 text-xs"
+																			>
+																				Sem nichos liberados
+																			</Badge>
+																			<div className="flex flex-wrap items-center gap-2">
+																				<Select
+																					value={selectedNicheId}
+																					onValueChange={(value) =>
+																						setPendingNicheForUser(
+																							userItem.userId,
+																							value,
+																						)
+																					}
+																				>
+																					<SelectTrigger
+																						className={cn(
+																							selectTriggerClassName,
+																							'h-9 w-[180px] min-w-[180px]',
+																						)}
+																					>
+																						<SelectValue placeholder="Selecionar nicho" />
+																					</SelectTrigger>
+																					<SelectContent>
+																						{availableNichesForAssignment.map(
+																							(niche) => (
+																								<SelectItem
+																									key={niche.id}
+																									value={niche.id}
+																								>
+																									{niche.name}
+																								</SelectItem>
+																							),
+																						)}
+																					</SelectContent>
+																				</Select>
+																				<AnimatedActionButton
+																					size="sm"
+																					variant="default"
+																					icon={Plus}
+																					className={primaryCtaClassName}
+																					disabled={
+																						!canEditUser ||
+																						isActionPending ||
+																						!selectedNicheId ||
+																						availableNichesForAssignment.length ===
+																							0
+																					}
+																					onClick={() =>
+																						adminUsers.assignNiche.mutate({
+																							userId: userItem.userId,
+																							nicheId: selectedNicheId,
+																						})
+																					}
+																				>
+																					Liberar nicho
+																				</AnimatedActionButton>
+																			</div>
+																		</div>
+																	)}
 																</TableCell>
 																<TableCell>
 																	<StatusBadge active={!userItem.isDeleted} />
@@ -968,7 +1161,7 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																		>
 																			{userItem.isDeleted
 																				? 'Restaurar'
-																				: 'Soft delete'}
+																				: 'Excluir'}
 																		</AnimatedActionButton>
 																	</div>
 																</TableCell>
