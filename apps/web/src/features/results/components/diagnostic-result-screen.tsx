@@ -57,20 +57,20 @@ const DetailBarChart = ({
 	<div className="space-y-4">
 		{items.map((item) => {
 			const maturity = classifyMaturity(item.value)
+			const summaryText = item.description
+				? item.description.includes(':')
+					? item.description
+					: `${maturity.label}: ${item.description}`
+				: `${maturity.label}: ${maturity.description}`
 
 			return (
 				<div key={item.label} className="space-y-1.5">
 					<div className="flex items-center justify-between gap-3">
 						<div>
 							<p className="text-base font-semibold">{item.label}</p>
-							<p className="text-sm text-muted-foreground">
-								Status: {maturity.label}
+							<p className="mt-1 text-sm leading-6 text-foreground/78">
+								{summaryText}
 							</p>
-							{item.description ? (
-								<p className="mt-1 text-sm leading-6 text-foreground/78">
-									{item.description}
-								</p>
-							) : null}
 						</div>
 						<span className="text-sm font-semibold">{item.value}%</span>
 					</div>
@@ -269,23 +269,23 @@ export const DiagnosticResultScreen = ({
 							className="rounded-3xl border p-5"
 							style={getPillarOutcomeCardStyle('strong')}
 						>
-							<div className="flex items-center justify-between gap-4">
-								<p
-									className="text-xs uppercase tracking-[0.16em]"
-									style={getPillarOutcomeLabelStyle('strong')}
-								>
-									Pilar Forte
+							<p
+								className="text-xs uppercase tracking-[0.16em]"
+								style={getPillarOutcomeLabelStyle('strong')}
+							>
+								Pilar Forte
+							</p>
+							<div className="mt-3 flex items-center justify-between gap-4">
+								<p className="text-2xl font-semibold tracking-tight text-foreground">
+									{pillarTitle(result.strongPillar)}
 								</p>
-								<div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-current/20 bg-background/40">
+								<div className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-current/20 bg-background/40">
 									<Trophy
-										className="size-7"
+										className="size-9"
 										style={getPillarOutcomeLabelStyle('strong')}
 									/>
 								</div>
 							</div>
-							<p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-								{pillarTitle(result.strongPillar)}
-							</p>
 							<p className="mt-2 text-sm leading-6 text-foreground/78">
 								Este pilar sustenta a base mais consistente do ciclo atual.
 							</p>
@@ -294,23 +294,23 @@ export const DiagnosticResultScreen = ({
 							className="rounded-3xl border p-5"
 							style={getPillarOutcomeCardStyle('critical')}
 						>
-							<div className="flex items-center justify-between gap-4">
-								<p
-									className="text-xs uppercase tracking-[0.16em]"
-									style={getPillarOutcomeLabelStyle('critical')}
-								>
-									Pilar Crítico
+							<p
+								className="text-xs uppercase tracking-[0.16em]"
+								style={getPillarOutcomeLabelStyle('critical')}
+							>
+								Pilar Crítico
+							</p>
+							<div className="mt-3 flex items-center justify-between gap-4">
+								<p className="text-2xl font-semibold tracking-tight text-foreground">
+									{pillarTitle(result.criticalPillar)}
 								</p>
-								<div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-current/20 bg-background/40">
+								<div className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-current/20 bg-background/40">
 									<AlertTriangle
-										className="size-7"
+										className="size-9"
 										style={getPillarOutcomeLabelStyle('critical')}
 									/>
 								</div>
 							</div>
-							<p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-								{pillarTitle(result.criticalPillar)}
-							</p>
 							<p className="mt-2 text-sm leading-6 text-foreground/78">
 								Este pilar concentra a principal vulnerabilidade do ciclo atual.
 							</p>
