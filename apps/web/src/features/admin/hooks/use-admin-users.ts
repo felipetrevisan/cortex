@@ -46,6 +46,13 @@ export interface AdminUsersViewModel {
 	stats: AdminUsersStats
 }
 
+interface AdminResetFlowResult {
+	cycles_deleted?: number
+	phase1_deleted?: number
+	phase2_deleted?: number
+	protocol_deleted?: number
+}
+
 const buildStats = (users: AdminUserViewModel[]): AdminUsersStats => {
 	const byProviderMap = new Map<string, number>()
 
@@ -357,6 +364,51 @@ export const useAdminUsers = () => {
 		},
 	})
 
+	const resetDiagnosticFlow = useMutation({
+		mutationFn: async (payload: { userId: string; nicheId: string }) => {
+			const { data, error } = await getSupabaseClient().rpc(
+				'admin_reset_user_diagnostic_flow',
+				{
+					target_user_id: payload.userId,
+					target_niche_id: payload.nicheId,
+				},
+			)
+
+			if (error) throw new Error(error.message)
+
+			return (data ?? {}) as AdminResetFlowResult
+		},
+		onSuccess: async (data, payload) => {
+			const cyclesDeleted = data.cycles_deleted ?? 0
+			const phase1Deleted = data.phase1_deleted ?? 0
+			const phase2Deleted = data.phase2_deleted ?? 0
+			const protocolDeleted = data.protocol_deleted ?? 0
+
+			toast.success(
+				`Fluxo resetado. ${cyclesDeleted} ciclo(s), ${phase1Deleted} resposta(s) da Fase 1, ${phase2Deleted} da Fase 2 e ${protocolDeleted} protocolo(s) removidos.`,
+			)
+
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: queryKeys.admin.users }),
+				queryClient.invalidateQueries({
+					queryKey: queryKeys.auth.profile(payload.userId),
+				}),
+				queryClient.invalidateQueries({
+					queryKey: queryKeys.auth.nicheAccess(payload.userId),
+				}),
+				queryClient.invalidateQueries({
+					predicate: (query) => {
+						const rootKey = query.queryKey[0]
+						return rootKey === 'dashboard' || rootKey === 'diagnostic-result'
+					},
+				}),
+			])
+		},
+		onError: (error) => {
+			toast.error(error.message)
+		},
+	})
+
 	return {
 		usersQuery,
 		updateRole,
@@ -364,5 +416,6 @@ export const useAdminUsers = () => {
 		assignNiche,
 		setActiveNiche,
 		revokeNiche,
+		resetDiagnosticFlow,
 	}
 }

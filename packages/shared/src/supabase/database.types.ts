@@ -530,7 +530,13 @@ export type Database = {
 			[_ in never]: never
 		}
 		Functions: {
-			[_ in never]: never
+			admin_reset_user_diagnostic_flow: {
+				Args: {
+					target_user_id: string
+					target_niche_id?: string | null
+				}
+				Returns: Json
+			}
 		}
 		Enums: {
 			[_ in never]: never

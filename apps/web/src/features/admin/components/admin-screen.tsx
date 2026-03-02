@@ -227,6 +227,13 @@ interface SectionToolbarProps {
 	actionDisabled?: boolean
 }
 
+interface ResetFlowTarget {
+	userId: string
+	userName: string
+	nicheId: string
+	nicheName: string
+}
+
 const AnimatedActionButton = ({
 	icon: Icon,
 	children,
@@ -443,6 +450,8 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 	const [editingQuestionId, setEditingQuestionId] = useState<string | null>(
 		null,
 	)
+	const [resetFlowTarget, setResetFlowTarget] =
+		useState<ResetFlowTarget | null>(null)
 	const [pendingUserNiches, setPendingUserNiches] = useState<
 		Record<string, string>
 	>({})
@@ -1092,7 +1101,8 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 															adminUsers.setSoftDelete.isPending ||
 															adminUsers.assignNiche.isPending ||
 															adminUsers.setActiveNiche.isPending ||
-															adminUsers.revokeNiche.isPending
+															adminUsers.revokeNiche.isPending ||
+															adminUsers.resetDiagnosticFlow.isPending
 														const selectedNicheId =
 															pendingUserNiches[userItem.userId] ??
 															(userItem.niches.length > 0
@@ -1102,6 +1112,16 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																: (availableNichesForAssignment[0]?.id ??
 																	'')) ??
 															''
+														const selectedAssignedNiche =
+															userItem.niches.find(
+																(niche) => niche.nicheId === selectedNicheId,
+															) ??
+															userItem.niches.find(
+																(niche) =>
+																	niche.nicheId === userItem.activeNicheId,
+															) ??
+															userItem.niches[0] ??
+															null
 
 														return (
 															<TableRow key={userItem.id}>
@@ -1296,6 +1316,31 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 																</TableCell>
 																<TableCell>
 																	<div className="flex justify-end gap-2">
+																		<IconActionButton
+																			icon={RefreshCw}
+																			label={
+																				selectedAssignedNiche
+																					? `Resetar fluxo de ${selectedAssignedNiche.name}`
+																					: 'Resetar fluxo'
+																			}
+																			className="border-0 bg-amber-500 text-white hover:bg-amber-400"
+																			disabled={
+																				isActionPending ||
+																				!selectedAssignedNiche
+																			}
+																			onClick={() => {
+																				if (!selectedAssignedNiche) return
+
+																				setResetFlowTarget({
+																					userId: userItem.userId,
+																					userName:
+																						userItem.fullName || 'Usuário',
+																					nicheId:
+																						selectedAssignedNiche.nicheId,
+																					nicheName: selectedAssignedNiche.name,
+																				})
+																			}}
+																		/>
 																		<IconActionButton
 																			icon={ArrowUpDown}
 																			label={
@@ -1608,6 +1653,66 @@ export const AdminScreen = ({ section }: AdminScreenProps) => {
 							</AnimatedActionButton>
 						</DialogFooter>
 					</form>
+				</DialogContent>
+			</Dialog>
+
+			<Dialog
+				open={Boolean(resetFlowTarget)}
+				onOpenChange={(isOpen) => {
+					if (!isOpen) {
+						setResetFlowTarget(null)
+					}
+				}}
+			>
+				<DialogContent className="max-w-lg">
+					<DialogHeader>
+						<DialogTitle>Resetar fluxo do usuário</DialogTitle>
+						<DialogDescription>
+							Esse reset remove ciclos, respostas e progresso do protocolo do
+							nicho selecionado, mantendo conta, acesso e permissões.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
+						<p>
+							<span className="font-semibold">Usuário:</span>{' '}
+							{resetFlowTarget?.userName ?? '-'}
+						</p>
+						<p>
+							<span className="font-semibold">Nicho:</span>{' '}
+							{resetFlowTarget?.nicheName ?? '-'}
+						</p>
+						<p className="text-muted-foreground">
+							Use isso apenas para teste. O próximo acesso desse usuário vai
+							recomeçar o processo do zero nesse nicho.
+						</p>
+					</div>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => setResetFlowTarget(null)}
+							disabled={adminUsers.resetDiagnosticFlow.isPending}
+						>
+							Cancelar
+						</Button>
+						<AnimatedActionButton
+							icon={RefreshCw}
+							className="h-10 rounded-xl bg-amber-500 text-white shadow-sm transition-colors hover:bg-amber-400"
+							disabled={
+								adminUsers.resetDiagnosticFlow.isPending || !resetFlowTarget
+							}
+							onClick={async () => {
+								if (!resetFlowTarget) return
+
+								await adminUsers.resetDiagnosticFlow.mutateAsync({
+									userId: resetFlowTarget.userId,
+									nicheId: resetFlowTarget.nicheId,
+								})
+								setResetFlowTarget(null)
+							}}
+						>
+							Resetar fluxo
+						</AnimatedActionButton>
+					</DialogFooter>
 				</DialogContent>
 			</Dialog>
 
