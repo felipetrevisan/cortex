@@ -3,6 +3,7 @@
 import type { PillarKey } from '@cortex/shared/constants/pillars'
 import { PILLARS } from '@cortex/shared/constants/pillars'
 import {
+	classifyGeneralStructure,
 	classifyMaturity,
 	getCriticalPoints,
 } from '@cortex/shared/domain/diagnostic-calculations'
@@ -243,25 +244,7 @@ const getPhase1OverviewText = (input: {
 	criticalPillar: PillarKey | null
 	strongPillar: PillarKey | null
 }): string => {
-	if (!input.criticalPillar || !input.strongPillar) {
-		return 'O diagnóstico estrutural ainda exige leitura complementar para consolidar o contraste entre força e vulnerabilidade.'
-	}
-
-	const maturity = classifyMaturity(input.generalIndex)
-
-	if (maturity.level === 'critico') {
-		return `O projeto apresenta condição estrutural crítica. ${pillarTitle(input.criticalPillar)} é hoje o principal gargalo, enquanto ${pillarTitle(input.strongPillar)} sustenta a base mais estável.`
-	}
-
-	if (maturity.level === 'instavel') {
-		return `A estrutura atual está instável. ${pillarTitle(input.criticalPillar)} precisa de reforço para que ${pillarTitle(input.strongPillar)} consiga sustentar avanço consistente.`
-	}
-
-	if (maturity.level === 'funcional') {
-		return `A base estrutural já é funcional. ${pillarTitle(input.strongPillar)} ajuda a manter o avanço, mas ${pillarTitle(input.criticalPillar)} ainda precisa de ajustes para ganhar previsibilidade.`
-	}
-
-	return `A base estrutural está sólida. ${pillarTitle(input.strongPillar)} opera como vantagem clara, enquanto ${pillarTitle(input.criticalPillar)} concentra apenas ajustes finos para ampliar previsibilidade e conclusão.`
+	return classifyGeneralStructure(input.generalIndex).description
 }
 
 const getPhase2OverviewText = (input: {

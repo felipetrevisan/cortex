@@ -556,6 +556,16 @@ export const DiagnosticResultScreen = ({
 						)}
 					</CardContent>
 				</Card>
+
+				<div className="flex justify-center pt-2">
+					<Link
+						href="/dashboard"
+						className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+					>
+						<ArrowLeft className="size-4" />
+						Voltar para a dashboard
+					</Link>
+				</div>
 			</section>
 		</main>
 	)
