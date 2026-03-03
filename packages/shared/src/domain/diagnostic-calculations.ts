@@ -11,6 +11,12 @@ export interface MaturityClassification {
 	description: string
 }
 
+export interface GeneralStructureClassification {
+	level: MaturityLevel
+	label: string
+	description: string
+}
+
 export interface Phase1Summary {
 	pillarPercentages: Record<PillarKey, number>
 	generalIndex: number
@@ -100,6 +106,46 @@ export const classifyMaturity = (percent: number): MaturityClassification => {
 		level: 'solido',
 		label: 'Sólido',
 		description: 'Pilar maduro, estável e com boa capacidade de sustentação.',
+	}
+}
+
+export const classifyGeneralStructure = (
+	percent: number,
+): GeneralStructureClassification => {
+	const value = Math.max(0, Math.min(100, percent))
+
+	if (value <= 39) {
+		return {
+			level: 'critico',
+			label: 'Estrutura Comprometida',
+			description:
+				'A estrutura apresenta fragilidades relevantes que limitam desempenho e previsibilidade. Há necessidade de reorganização estratégica para evitar ciclos recorrentes de instabilidade.',
+		}
+	}
+
+	if (value <= 59) {
+		return {
+			level: 'instavel',
+			label: 'Estrutura Instável',
+			description:
+				'Existe funcionamento parcial, porém com oscilações frequentes. A base permite avanço, mas ainda depende de esforço excessivo para manter resultados.',
+		}
+	}
+
+	if (value <= 79) {
+		return {
+			level: 'funcional',
+			label: 'Estrutura Funcional',
+			description:
+				'A base estrutural já sustenta avanço consistente. Ajustes direcionados podem elevar previsibilidade e reduzir desgaste operacional.',
+		}
+	}
+
+	return {
+		level: 'solido',
+		label: 'Estrutura Sólida',
+		description:
+			'A estrutura opera com alto nível de organização e consistência. O foco passa a ser otimização e expansão estratégica.',
 	}
 }
 

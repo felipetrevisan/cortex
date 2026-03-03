@@ -1,6 +1,9 @@
 'use client'
 
-import { classifyMaturity } from '@cortex/shared/domain/diagnostic-calculations'
+import {
+	classifyGeneralStructure,
+	classifyMaturity,
+} from '@cortex/shared/domain/diagnostic-calculations'
 import { Badge } from '@cortex/ui/components/badge'
 import {
 	Card,
@@ -29,6 +32,11 @@ import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { useProfileQuery } from '@/features/auth/hooks/use-profile-query'
 import { resolveIsAdmin } from '@/features/auth/lib/role'
 import { DashboardHeader } from '@/features/dashboard/components/dashboard-header'
+import {
+	getCriticalPillarDescription,
+	getSimplePillarLabel,
+	getStrongPillarDescription,
+} from '@/features/diagnostic/lib/pillar-highlight-copy'
 import {
 	getPillarOutcomeCardStyle,
 	getPillarOutcomeLabelStyle,
@@ -201,7 +209,10 @@ export const DiagnosticResultScreen = ({
 
 	const { data } = resultQuery
 	const result = data.result
-	const generalMaturity = classifyMaturity(result.generalIndex)
+	const generalMaturity =
+		result.kind === 'phase1'
+			? classifyGeneralStructure(result.generalIndex)
+			: classifyMaturity(result.generalIndex)
 
 	return (
 		<main className="min-h-dvh pb-12">
@@ -276,6 +287,11 @@ export const DiagnosticResultScreen = ({
 									<p className="text-base font-semibold text-foreground">
 										{generalMaturity.label}
 									</p>
+									{result.kind === 'phase1' ? (
+										<p className="text-sm leading-6 text-muted-foreground">
+											{generalMaturity.description}
+										</p>
+									) : null}
 								</CardContent>
 							</Card>
 						</div>
@@ -296,7 +312,7 @@ export const DiagnosticResultScreen = ({
 							</p>
 							<div className="mt-3 flex items-center justify-between gap-4">
 								<p className="text-2xl font-semibold tracking-tight text-foreground">
-									{pillarTitle(result.strongPillar)}
+									{getSimplePillarLabel(result.strongPillar)}
 								</p>
 								<div className="flex size-16 shrink-0 items-center justify-center">
 									<Trophy
@@ -306,7 +322,12 @@ export const DiagnosticResultScreen = ({
 								</div>
 							</div>
 							<p className="mt-2 text-sm leading-6 text-foreground/78">
-								Este pilar sustenta a base mais consistente do ciclo atual.
+								{getStrongPillarDescription(
+									result.strongPillar,
+									result.pillarItems.find(
+										(item) => item.key === result.strongPillar,
+									)?.value ?? 0,
+								)}
 							</p>
 						</div>
 						<div
@@ -321,7 +342,7 @@ export const DiagnosticResultScreen = ({
 							</p>
 							<div className="mt-3 flex items-center justify-between gap-4">
 								<p className="text-2xl font-semibold tracking-tight text-foreground">
-									{pillarTitle(result.criticalPillar)}
+									{getSimplePillarLabel(result.criticalPillar)}
 								</p>
 								<div className="flex size-16 shrink-0 items-center justify-center">
 									<AlertTriangle
@@ -331,7 +352,12 @@ export const DiagnosticResultScreen = ({
 								</div>
 							</div>
 							<p className="mt-2 text-sm leading-6 text-foreground/78">
-								Este pilar concentra a principal vulnerabilidade do ciclo atual.
+								{getCriticalPillarDescription(
+									result.criticalPillar,
+									result.pillarItems.find(
+										(item) => item.key === result.criticalPillar,
+									)?.value ?? 0,
+								)}
 							</p>
 						</div>
 					</div>
@@ -486,10 +512,10 @@ export const DiagnosticResultScreen = ({
 						'rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]',
 						result.kind === 'phase1'
 							? result.finalSummary.scenario === 'green'
-								? 'border-emerald-500/35 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_28px_rgba(16,185,129,0.16)]'
+								? 'border-emerald-500/60 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_42px_rgba(16,185,129,0.24)]'
 								: result.finalSummary.scenario === 'yellow'
-									? 'border-amber-500/35 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_28px_rgba(245,158,11,0.16)]'
-									: 'border-red-500/35 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_28px_rgba(239,68,68,0.16)]'
+									? 'border-red-500/55 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_38px_rgba(239,68,68,0.20)]'
+									: 'border-red-500/60 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_42px_rgba(239,68,68,0.24)]'
 							: '',
 					)}
 				>

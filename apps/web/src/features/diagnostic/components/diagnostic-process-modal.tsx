@@ -2,7 +2,10 @@
 
 import type { PillarKey } from '@cortex/shared/constants/pillars'
 import { PILLARS } from '@cortex/shared/constants/pillars'
-import { classifyMaturity } from '@cortex/shared/domain/diagnostic-calculations'
+import {
+	classifyGeneralStructure,
+	classifyMaturity,
+} from '@cortex/shared/domain/diagnostic-calculations'
 import { Button } from '@cortex/ui/components/button'
 import {
 	Card,
@@ -28,6 +31,11 @@ import { useRouter } from 'next/navigation'
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { IconButton } from '@/components/animate-ui/components/buttons/icon'
+import {
+	getCriticalPillarDescription,
+	getSimplePillarLabel,
+	getStrongPillarDescription,
+} from '@/features/diagnostic/lib/pillar-highlight-copy'
 import {
 	getPillarOutcomeCardStyle,
 	getPillarOutcomeLabelStyle,
@@ -349,7 +357,7 @@ export const DiagnosticProcessModal = ({
 
 	const progressColorToken = resolveProgressColorToken(flow)
 	const stageTitle = resolveStageTitle(flow)
-	const phase1GeneralMaturity = classifyMaturity(
+	const phase1GeneralMaturity = classifyGeneralStructure(
 		flow.phase1Summary?.generalIndex ?? 0,
 	)
 	const phase2GeneralMaturity = classifyMaturity(
@@ -361,12 +369,22 @@ export const DiagnosticProcessModal = ({
 			label: 'Pilar forte',
 			role: 'strong' as PillarOutcomeRole,
 			pillar: flow.phase1Summary?.strongPillar ?? null,
+			value: flow.phase1Summary?.strongPillar
+				? (flow.phase1Summary?.pillarPercentages[
+						flow.phase1Summary.strongPillar
+					] ?? 0)
+				: 0,
 		},
 		{
 			id: 'critical',
 			label: 'Pilar crítico',
 			role: 'critical' as PillarOutcomeRole,
 			pillar: flow.phase1Summary?.criticalPillar ?? null,
+			value: flow.phase1Summary?.criticalPillar
+				? (flow.phase1Summary?.pillarPercentages[
+						flow.phase1Summary.criticalPillar
+					] ?? 0)
+				: 0,
 		},
 	] as const
 	const shouldShowPhase1Instructions =
@@ -723,7 +741,18 @@ export const DiagnosticProcessModal = ({
 															{item.label}
 														</p>
 														<p className="mt-2 text-xl font-semibold tracking-tight">
-															{pillarLabel(item.pillar)}
+															{getSimplePillarLabel(item.pillar)}
+														</p>
+														<p className="mt-2 text-sm leading-6 text-foreground/78">
+															{item.role === 'strong'
+																? getStrongPillarDescription(
+																		item.pillar,
+																		item.value,
+																	)
+																: getCriticalPillarDescription(
+																		item.pillar,
+																		item.value,
+																	)}
 														</p>
 													</div>
 												))}
