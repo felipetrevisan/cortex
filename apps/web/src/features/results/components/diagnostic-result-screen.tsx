@@ -27,6 +27,7 @@ import {
 	Trophy,
 } from 'lucide-react'
 import Link from 'next/link'
+import type { CSSProperties } from 'react'
 import { useActiveNicheAccess } from '@/features/auth/hooks/use-active-niche-access'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { useProfileQuery } from '@/features/auth/hooks/use-profile-query'
@@ -67,6 +68,29 @@ const getStructuralInsightIcon = (id: string) => {
 			return Target
 		default:
 			return Sparkles
+	}
+}
+
+const getFinalSummaryCardStyle = (
+	scenario: 'green' | 'yellow' | 'red',
+): CSSProperties => {
+	if (scenario === 'green') {
+		return {
+			borderColor:
+				'color-mix(in oklch, var(--color-emerald-500) 58%, transparent)',
+			background:
+				'linear-gradient(145deg, color-mix(in oklch, var(--color-emerald-500) 14%, var(--card)) 0%, color-mix(in oklch, var(--color-emerald-500) 6%, var(--card)) 100%)',
+			boxShadow:
+				'0 0 28px color-mix(in oklch, var(--color-emerald-500) 24%, transparent)',
+		}
+	}
+
+	return {
+		borderColor: 'color-mix(in oklch, var(--color-red-500) 58%, transparent)',
+		background:
+			'linear-gradient(145deg, color-mix(in oklch, var(--color-red-500) 14%, var(--card)) 0%, color-mix(in oklch, var(--color-red-500) 6%, var(--card)) 100%)',
+		boxShadow:
+			'0 0 28px color-mix(in oklch, var(--color-red-500) 24%, transparent)',
 	}
 }
 
@@ -502,16 +526,12 @@ export const DiagnosticResultScreen = ({
 				)}
 
 				<Card
-					className={cn(
-						'rounded-3xl border-2 border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]',
+					className="rounded-3xl border-2 border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]"
+					style={
 						result.kind === 'phase1'
-							? result.finalSummary.scenario === 'green'
-								? 'border-emerald-500 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_42px_rgba(16,185,129,0.24)]'
-								: result.finalSummary.scenario === 'yellow'
-									? 'border-red-500 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_38px_rgba(239,68,68,0.20)]'
-									: 'border-red-500 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_42px_rgba(239,68,68,0.24)]'
-							: '',
-					)}
+							? getFinalSummaryCardStyle(result.finalSummary.scenario)
+							: undefined
+					}
 				>
 					<CardHeader className="p-6 pb-3">
 						{result.kind === 'phase2' ? (
