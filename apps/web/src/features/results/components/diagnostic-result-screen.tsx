@@ -400,7 +400,7 @@ export const DiagnosticResultScreen = ({
 				</div>
 
 				{result.kind === 'phase1' ? (
-					<div className="grid gap-5 md:grid-cols-2">
+					<div className="grid gap-5 xl:grid-cols-3">
 						{result.structuralInsights.map((insight) => {
 							const InsightIcon = getStructuralInsightIcon(insight.id)
 
@@ -481,13 +481,22 @@ export const DiagnosticResultScreen = ({
 					</Card>
 				)}
 
-				<Card className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
+				<Card
+					className={cn(
+						'rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]',
+						result.kind === 'phase1'
+							? result.finalSummary.scenario === 'green'
+								? 'border-emerald-500/35 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_28px_rgba(16,185,129,0.16)]'
+								: result.finalSummary.scenario === 'yellow'
+									? 'border-amber-500/35 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_28px_rgba(245,158,11,0.16)]'
+									: 'border-red-500/35 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_28px_rgba(239,68,68,0.16)]'
+							: '',
+					)}
+				>
 					<CardHeader className="p-6 pb-3">
-						<CardDescription>
-							{result.kind === 'phase1'
-								? 'Síntese estratégica do ciclo atual'
-								: 'Recomendação de leitura'}
-						</CardDescription>
+						{result.kind === 'phase2' ? (
+							<CardDescription>Recomendação de leitura</CardDescription>
+						) : null}
 						<CardTitle className="flex items-center gap-2 text-lg">
 							<CheckCircle2 className="size-4 text-primary" />
 							{result.kind === 'phase1'
@@ -497,16 +506,7 @@ export const DiagnosticResultScreen = ({
 					</CardHeader>
 					<CardContent className="space-y-3 p-6 pt-2 text-sm leading-7 text-foreground/78">
 						{result.kind === 'phase1' ? (
-							<div
-								className={cn(
-									'rounded-2xl border p-5',
-									result.finalSummary.scenario === 'green'
-										? 'border-emerald-500/30 bg-emerald-500/10'
-										: result.finalSummary.scenario === 'yellow'
-											? 'border-amber-500/30 bg-amber-500/10'
-											: 'border-red-500/30 bg-red-500/10',
-								)}
-							>
+							<div className="rounded-2xl border-transparent bg-transparent p-0">
 								<p className="text-base font-semibold text-foreground">
 									{result.finalSummary.title}
 								</p>
