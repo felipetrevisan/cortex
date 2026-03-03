@@ -120,7 +120,7 @@ const DetailDonutChart = ({
 		colorToken: string
 	}>
 }) => (
-	<Card className="h-full rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
+	<Card className="h-full rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)] flex flex-col">
 		<CardHeader className="p-6 pb-2">
 			<CardTitle className="flex items-center gap-2 text-lg">
 				<PieChart className="size-4 text-primary" />
@@ -298,9 +298,9 @@ export const DiagnosticResultScreen = ({
 								<p className="text-2xl font-semibold tracking-tight text-foreground">
 									{pillarTitle(result.strongPillar)}
 								</p>
-								<div className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-current/20 bg-background/40">
+								<div className="flex size-16 shrink-0 items-center justify-center">
 									<Trophy
-										className="size-9"
+										size={64}
 										style={getPillarOutcomeLabelStyle('strong')}
 									/>
 								</div>
@@ -323,9 +323,9 @@ export const DiagnosticResultScreen = ({
 								<p className="text-2xl font-semibold tracking-tight text-foreground">
 									{pillarTitle(result.criticalPillar)}
 								</p>
-								<div className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-current/20 bg-background/40">
+								<div className="flex size-16 shrink-0 items-center justify-center">
 									<AlertTriangle
-										className="size-9"
+										size={64}
 										style={getPillarOutcomeLabelStyle('critical')}
 									/>
 								</div>
@@ -483,27 +483,41 @@ export const DiagnosticResultScreen = ({
 
 				<Card className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
 					<CardHeader className="p-6 pb-3">
-						<CardDescription>Recomendação de leitura</CardDescription>
+						<CardDescription>
+							{result.kind === 'phase1'
+								? 'Síntese estratégica do ciclo atual'
+								: 'Recomendação de leitura'}
+						</CardDescription>
 						<CardTitle className="flex items-center gap-2 text-lg">
 							<CheckCircle2 className="size-4 text-primary" />
-							Próxima decisão orientada
+							{result.kind === 'phase1'
+								? 'Conclusão e Próximo Passo'
+								: 'Próxima decisão orientada'}
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-3 p-6 pt-2 text-sm leading-7 text-foreground/78">
 						{result.kind === 'phase1' ? (
-							<>
-								<p>
-									Use {pillarTitle(result.criticalPillar)} como prioridade do
-									plano de correção. O ganho estrutural mais rápido virá do
-									fortalecimento do pilar mais frágil.
+							<div
+								className={cn(
+									'rounded-2xl border p-5',
+									result.finalSummary.scenario === 'green'
+										? 'border-emerald-500/30 bg-emerald-500/10'
+										: result.finalSummary.scenario === 'yellow'
+											? 'border-amber-500/30 bg-amber-500/10'
+											: 'border-red-500/30 bg-red-500/10',
+								)}
+							>
+								<p className="text-base font-semibold text-foreground">
+									{result.finalSummary.title}
 								</p>
-								<p>
-									{pillarTitle(result.strongPillar)} deve ser tratado como
-									alavanca. Ele é o melhor ponto para sustentar disciplina,
-									clareza ou organização enquanto os ajustes centrais são
-									feitos.
-								</p>
-							</>
+								<div className="mt-3 space-y-3">
+									{result.finalSummary.description
+										.split('\n\n')
+										.map((paragraph) => (
+											<p key={paragraph}>{paragraph}</p>
+										))}
+								</div>
+							</div>
 						) : (
 							<>
 								<p>

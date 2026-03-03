@@ -39,12 +39,21 @@ const getMaturitySummaryText = (value: number): string => {
 }
 
 interface StructuralInsight {
-	id: 'asymmetry' | 'risk' | 'coherence' | 'projection'
+	id: 'asymmetry' | 'risk' | 'coherence'
 	title: string
 	status: string
 	valueLabel: string
 	description: string
 }
+
+interface Phase1FinalSummary {
+	scenario: 'green' | 'yellow' | 'red'
+	title: string
+	description: string
+}
+
+const getAsymmetryScore = (values: number[]): number =>
+	Math.max(...values) - Math.min(...values)
 
 const getAsymmetryInsight = (
 	values: number[],
@@ -155,57 +164,60 @@ const getCoherenceInsight = (
 	}
 }
 
-const getLimiterLabel = (pillar: PillarKey | null): string => {
+const getPillarTextLabel = (pillar: PillarKey | null): string => {
 	switch (pillar) {
 		case 'clarity':
-			return 'direcionamento estratégico'
+			return 'direção'
 		case 'structure':
-			return 'estrutura operacional'
+			return 'organização'
 		case 'execution':
-			return 'execução consistente'
+			return 'constância'
 		case 'emotional':
-			return 'estabilidade emocional'
+			return 'equilíbrio emocional'
 		default:
-			return 'estrutura operacional'
+			return 'organização'
 	}
 }
 
-const getProjectionInsight = (input: {
+const getPhase1FinalSummary = (input: {
+	strongPillar: PillarKey | null
 	criticalPillar: PillarKey | null
 	riskStatus: string
-}): Pick<StructuralInsight, 'status' | 'valueLabel' | 'description'> => {
-	const limiter = getLimiterLabel(input.criticalPillar)
-	let description = `Se o padrão atual se mantiver, o principal limitador continuará sendo ${limiter}. A tendência é manutenção do ciclo vigente, com desempenho dependente de esforço compensatório.`
+	asymmetry: number
+}): Phase1FinalSummary => {
+	const strong = getPillarTextLabel(input.strongPillar)
+	const weak = getPillarTextLabel(input.criticalPillar)
 
-	if (input.riskStatus === 'Risco Alto') {
-		description +=
-			' Sem intervenção direcionada, o padrão tende a se consolidar, reduzindo progressivamente eficiência e estabilidade operacional.'
+	if (input.riskStatus === 'Risco Alto' || input.asymmetry > 50) {
+		return {
+			scenario: 'red',
+			title: 'Cenário — Ciclo de Instabilidade Estrutural',
+			description: `O desempenho atual está sendo limitado por ${weak}, mesmo havendo força relevante em ${strong}. A diferença entre essas áreas gera desequilíbrio, dificultando consistência e manutenção de resultados.\n\nSe o padrão permanecer inalterado, a tendência é repetição de ciclos de esforço intenso seguidos de instabilidade. A prioridade estratégica é estabilizar ${weak}, permitindo que a força existente em ${strong} deixe de compensar fragilidades e passe a sustentar crescimento estruturado.`,
+		}
 	}
 
-	if (input.riskStatus === 'Risco Moderado') {
-		description +=
-			' Ajustes específicos podem alterar a trajetória atual e reduzir assimetria no curto prazo.'
+	if (input.riskStatus === 'Risco Moderado' || input.asymmetry > 30) {
+		return {
+			scenario: 'yellow',
+			title: 'Cenário — Desequilíbrio Controlável',
+			description: `Existe capacidade instalada, principalmente em ${strong}, mas o desempenho depende de compensações causadas pela fragilidade em ${weak}. Isso gera esforço adicional e oscilação em momentos de maior exigência.\n\nSem intervenção direcionada, o padrão tende a se repetir: avanço sustentado por esforço seguido de perda de ritmo. O foco estratégico está em fortalecer ${weak} para reduzir a necessidade de compensação e permitir que ${strong} opere como alavanca real de crescimento.`,
+		}
 	}
 
 	return {
-		status: 'Projeção do Ciclo Atual',
-		valueLabel: `Foco limitador: ${limiter}`,
-		description,
+		scenario: 'green',
+		title: 'Cenário — Estabilidade com Potencial de Evolução',
+		description: `Seu sistema apresenta uma base consistente, com destaque para ${strong}. Existe equilíbrio geral entre as áreas, e o ponto que mais pede atenção é ${weak}. Esse ajuste não representa fragilidade estrutural, mas uma oportunidade clara de refinamento.\n\nSe mantido como está, o funcionamento tende a continuar estável, porém abaixo do potencial máximo. Trabalhar especificamente ${weak} permitirá que a força já existente em ${strong} sustente um novo nível de desempenho, com menos esforço e maior previsibilidade.`,
 	}
 }
 
 const buildStructuralInsights = (input: {
 	pillars: Record<PillarKey, number>
-	criticalPillar: PillarKey | null
 }): StructuralInsight[] => {
 	const values = PILLARS.map((pillar) => input.pillars[pillar.key])
 	const asymmetry = getAsymmetryInsight(values)
 	const risk = getOperationalRiskInsight(values)
 	const coherence = getCoherenceInsight(values)
-	const projection = getProjectionInsight({
-		criticalPillar: input.criticalPillar,
-		riskStatus: risk.status,
-	})
 
 	return [
 		{
@@ -222,11 +234,6 @@ const buildStructuralInsights = (input: {
 			id: 'coherence',
 			title: 'Coerência Interna do Sistema',
 			...coherence,
-		},
-		{
-			id: 'projection',
-			title: 'Projeção do Ciclo Atual',
-			...projection,
 		},
 	]
 }
@@ -327,6 +334,7 @@ interface Phase1DetailedResult {
 		colorToken: string
 	}>
 	structuralInsights: StructuralInsight[]
+	finalSummary: Phase1FinalSummary
 }
 
 interface Phase2DetailedResult {
@@ -378,6 +386,12 @@ const buildPhase1Result = (input: {
 	const strongPillar = isPillarKey(input.cycle.highlights.strong)
 		? input.cycle.highlights.strong
 		: null
+	const asymmetry = getAsymmetryScore(
+		PILLARS.map((pillar) => input.cycle.pillars[pillar.key]),
+	)
+	const riskStatus = getOperationalRiskInsight(
+		PILLARS.map((pillar) => input.cycle.pillars[pillar.key]),
+	).status
 
 	return {
 		kind: 'phase1',
@@ -398,7 +412,12 @@ const buildPhase1Result = (input: {
 		})),
 		structuralInsights: buildStructuralInsights({
 			pillars: input.cycle.pillars,
+		}),
+		finalSummary: getPhase1FinalSummary({
+			strongPillar,
 			criticalPillar,
+			riskStatus,
+			asymmetry,
 		}),
 	}
 }
