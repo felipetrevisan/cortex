@@ -503,13 +503,13 @@ export const DiagnosticResultScreen = ({
 
 				<Card
 					className={cn(
-						'rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]',
+						'rounded-3xl border-2 border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]',
 						result.kind === 'phase1'
 							? result.finalSummary.scenario === 'green'
-								? 'border-emerald-500/60 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_42px_rgba(16,185,129,0.24)]'
+								? 'border-emerald-500 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_42px_rgba(16,185,129,0.24)]'
 								: result.finalSummary.scenario === 'yellow'
-									? 'border-red-500/55 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_38px_rgba(239,68,68,0.20)]'
-									: 'border-red-500/60 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_42px_rgba(239,68,68,0.24)]'
+									? 'border-red-500 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_38px_rgba(239,68,68,0.20)]'
+									: 'border-red-500 shadow-[0_10px_30px_rgba(2,8,23,0.08),0_0_42px_rgba(239,68,68,0.24)]'
 							: '',
 					)}
 				>
