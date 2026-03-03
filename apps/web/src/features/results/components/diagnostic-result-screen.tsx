@@ -34,7 +34,6 @@ import { resolveIsAdmin } from '@/features/auth/lib/role'
 import { DashboardHeader } from '@/features/dashboard/components/dashboard-header'
 import {
 	getCriticalPillarDescription,
-	getSimplePillarLabel,
 	getStrongPillarDescription,
 } from '@/features/diagnostic/lib/pillar-highlight-copy'
 import {
@@ -270,8 +269,8 @@ export const DiagnosticResultScreen = ({
 							</div>
 							<h2 className="font-(--font-space) text-2xl tracking-tight">
 								{result.kind === 'phase1'
-									? 'Diagnóstico estrutural consolidado'
-									: `Avaliação aprofundada de ${pillarTitle(result.criticalPillar)}`}
+									? 'Diagnóstico Estrutural Consolidado'
+									: `Avaliação Aprofundada de ${pillarTitle(result.criticalPillar)}`}
 							</h2>
 							<p className="max-w-3xl text-sm leading-7 text-foreground/78">
 								{result.overviewText}
@@ -287,11 +286,6 @@ export const DiagnosticResultScreen = ({
 									<p className="text-base font-semibold text-foreground">
 										{generalMaturity.label}
 									</p>
-									{result.kind === 'phase1' ? (
-										<p className="text-sm leading-6 text-muted-foreground">
-											{generalMaturity.description}
-										</p>
-									) : null}
 								</CardContent>
 							</Card>
 						</div>
@@ -312,7 +306,7 @@ export const DiagnosticResultScreen = ({
 							</p>
 							<div className="mt-3 flex items-center justify-between gap-4">
 								<p className="text-2xl font-semibold tracking-tight text-foreground">
-									{getSimplePillarLabel(result.strongPillar)}
+									{pillarTitle(result.strongPillar)}
 								</p>
 								<div className="flex size-16 shrink-0 items-center justify-center">
 									<Trophy
@@ -342,7 +336,7 @@ export const DiagnosticResultScreen = ({
 							</p>
 							<div className="mt-3 flex items-center justify-between gap-4">
 								<p className="text-2xl font-semibold tracking-tight text-foreground">
-									{getSimplePillarLabel(result.criticalPillar)}
+									{pillarTitle(result.criticalPillar)}
 								</p>
 								<div className="flex size-16 shrink-0 items-center justify-center">
 									<AlertTriangle
