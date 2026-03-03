@@ -18,14 +18,11 @@ import {
 	SelectValue,
 } from '@cortex/ui/components/select'
 import {
-	ArrowDown,
 	ArrowRight,
-	ArrowUp,
 	ClipboardCheck,
 	FileCheck2,
 	Loader2,
 	Lock,
-	Minus,
 	RefreshCcw,
 	Rocket,
 } from 'lucide-react'
@@ -466,72 +463,61 @@ export const DashboardScreen = () => {
 
 					<Card className={dashboardCardClassName}>
 						<CardHeader className="gap-2 p-6">
-							<CardDescription>Relatório comparativo</CardDescription>
+							<CardDescription>Resultados disponíveis</CardDescription>
 							<CardTitle className="text-lg">
-								Variação percentual e alertas
+								Relatório dos Resultados Completos
 							</CardTitle>
 						</CardHeader>
-						<CardContent className="space-y-4 p-6 pt-1">
-							<p className="text-sm text-muted-foreground">
-								{viewModel.comparative.summary}
-							</p>
-
-							{viewModel.comparative.metrics.length === 0 ? (
-								<p className="rounded-2xl border border-border/70 bg-muted/35 px-4 py-3 text-sm text-muted-foreground">
-									Complete ao menos um ciclo para habilitar comparações.
-								</p>
-							) : (
-								<div className="space-y-2">
-									{viewModel.comparative.metrics.map((metric) => (
-										<div
-											key={metric.key}
-											className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-muted/35 px-4 py-3"
-										>
-											<div>
-												<p className="text-sm font-semibold">{metric.label}</p>
-												<p className="text-xs text-muted-foreground">
-													{metric.interpretation}
-												</p>
-											</div>
-											<div className="flex items-center gap-2">
-												<span className="text-sm font-semibold">
-													{metric.current}%
-												</span>
-												<span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background px-2 py-1 text-xs font-semibold">
-													{metric.trend === 'up' ? (
-														<ArrowUp className="size-3.5 text-emerald-600" />
-													) : null}
-													{metric.trend === 'down' ? (
-														<ArrowDown className="size-3.5 text-red-600" />
-													) : null}
-													{metric.trend === 'flat' ? (
-														<Minus className="size-3.5 text-muted-foreground" />
-													) : null}
-													{metric.variation === null
-														? 'N/A'
-														: `${metric.variation > 0 ? '+' : ''}${metric.variation.toFixed(1)} pp`}
-												</span>
-											</div>
+						<CardContent className="space-y-3 p-6 pt-1">
+							{viewModel.resultReports.map((report) => {
+								const content = (
+									<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-muted/35 px-4 py-3 transition-colors">
+										<div className="space-y-1">
+											<p className="text-sm font-semibold">{report.title}</p>
+											<p className="text-xs text-muted-foreground">
+												{report.description}
+											</p>
 										</div>
-									))}
-								</div>
-							)}
+										<div className="flex items-center gap-2">
+											<span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background px-2 py-1 text-xs font-semibold">
+												{report.status === 'available' ? (
+													<>
+														<FileCheck2 className="size-3.5 text-primary" />
+														Liberado
+													</>
+												) : report.status === 'coming-soon' ? (
+													<>
+														<RefreshCcw className="size-3.5 text-primary" />
+														Em breve
+													</>
+												) : (
+													<>
+														<Lock className="size-3.5 text-muted-foreground" />
+														Bloqueado
+													</>
+												)}
+											</span>
+											{report.status === 'available' ? (
+												<ArrowRight className="size-4 text-primary" />
+											) : null}
+										</div>
+									</div>
+								)
 
-							{viewModel.comparative.regressionAlerts.length > 0 ? (
-								<div className="space-y-2 rounded-2xl border border-red-500/30 bg-red-500/10 p-4">
-									<p className="text-sm font-semibold text-red-700 dark:text-red-300">
-										Alertas de regressão
-									</p>
-									{viewModel.comparative.regressionAlerts.map((alert) => (
-										<p
-											key={alert}
-											className="text-xs text-red-700 dark:text-red-300"
+								if (report.href) {
+									return (
+										<Link
+											key={report.key}
+											href={report.href}
+											className="block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
 										>
-											{alert}
-										</p>
-									))}
-								</div>
-							) : null}
+											{content}
+										</Link>
+									)
+								}
+
+								return <div key={report.key}>{content}</div>
+							})}
 						</CardContent>
 					</Card>
 				</Reveal>

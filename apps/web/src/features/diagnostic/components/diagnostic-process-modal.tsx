@@ -21,19 +21,21 @@ import {
 	ArrowRight,
 	CheckCircle2,
 	Circle,
+	GitCompareArrows,
 	Loader2,
 	Lock,
+	Radar,
+	ShieldAlert,
 	Sparkles,
 	X,
 } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useRouter } from 'next/navigation'
-import { type CSSProperties, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { IconButton } from '@/components/animate-ui/components/buttons/icon'
 import {
 	getCriticalPillarDescription,
-	getSimplePillarLabel,
 	getStrongPillarDescription,
 } from '@/features/diagnostic/lib/pillar-highlight-copy'
 import {
@@ -41,6 +43,12 @@ import {
 	getPillarOutcomeLabelStyle,
 	type PillarOutcomeRole,
 } from '@/features/diagnostic/lib/pillar-outcome-style'
+import {
+	buildStructuralInsights,
+	getOperationalRiskInsight,
+	getPhase1AsymmetryScore,
+	getPhase1FinalSummary,
+} from '@/features/results/lib/phase1-structural-summary'
 import { getDiagnosticResultPath } from '@/features/results/lib/result-routes'
 import { useDiagnosticProcessFlow } from '../hooks/use-diagnostic-process-flow'
 
@@ -205,27 +213,14 @@ const resolveProgressColorToken = (
 	)
 }
 
-const getPillarIdentityCardStyle = (
-	pillar: PillarKey | null,
-): CSSProperties => {
-	const colorToken =
-		PILLARS.find((item) => item.key === pillar)?.colorToken ?? 'primary'
-
-	return {
-		borderColor: `color-mix(in oklch, var(--${colorToken}) 40%, transparent)`,
-		background: `linear-gradient(145deg, color-mix(in oklch, var(--${colorToken}) 16%, var(--card)) 0%, color-mix(in oklch, var(--${colorToken}) 6%, var(--card)) 100%)`,
-		boxShadow: `0 0 24px color-mix(in oklch, var(--${colorToken}) 18%, transparent)`,
-	}
-}
-
-const getPillarIdentityLabelStyle = (
-	pillar: PillarKey | null,
-): CSSProperties => {
-	const colorToken =
-		PILLARS.find((item) => item.key === pillar)?.colorToken ?? 'primary'
-
-	return {
-		color: `color-mix(in oklch, var(--${colorToken}) 78%, var(--foreground))`,
+const getStructuralInsightIcon = (id: 'asymmetry' | 'risk' | 'coherence') => {
+	switch (id) {
+		case 'asymmetry':
+			return GitCompareArrows
+		case 'risk':
+			return ShieldAlert
+		case 'coherence':
+			return Radar
 	}
 }
 
@@ -387,6 +382,25 @@ export const DiagnosticProcessModal = ({
 				: 0,
 		},
 	] as const
+	const phase1StructuralInsights = useMemo(() => {
+		if (!flow.phase1Summary) return []
+		return buildStructuralInsights(flow.phase1Summary.pillarPercentages)
+	}, [flow.phase1Summary])
+	const phase1FinalSummary = useMemo(() => {
+		if (!flow.phase1Summary) return null
+		const asymmetry = getPhase1AsymmetryScore(
+			flow.phase1Summary.pillarPercentages,
+		)
+		const riskStatus = getOperationalRiskInsight(
+			Object.values(flow.phase1Summary.pillarPercentages),
+		).status
+		return getPhase1FinalSummary({
+			strongPillar: flow.phase1Summary.strongPillar,
+			criticalPillar: flow.phase1Summary.criticalPillar,
+			riskStatus,
+			asymmetry,
+		})
+	}, [flow.phase1Summary])
 	const shouldShowPhase1Instructions =
 		flow.stage === 'phase1' &&
 		flow.phase1.answeredCount === 0 &&
@@ -714,16 +728,13 @@ export const DiagnosticProcessModal = ({
 										<div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
 											<div className="rounded-2xl border border-border/70 bg-card/80 p-5 backdrop-blur-lg">
 												<p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-													Índice geral estrutural
+													Índice Geral
 												</p>
 												<p className="mt-2 text-4xl font-bold">
 													{flow.phase1Summary?.generalIndex ?? 0}%
 												</p>
 												<p className="mt-2 text-sm font-semibold">
 													{phase1GeneralMaturity.label}
-												</p>
-												<p className="mt-3 text-sm text-muted-foreground">
-													{phase1GeneralMaturity.description}
 												</p>
 											</div>
 
@@ -741,7 +752,7 @@ export const DiagnosticProcessModal = ({
 															{item.label}
 														</p>
 														<p className="mt-2 text-xl font-semibold tracking-tight">
-															{getSimplePillarLabel(item.pillar)}
+															{pillarLabel(item.pillar)}
 														</p>
 														<p className="mt-2 text-sm leading-6 text-foreground/78">
 															{item.role === 'strong'
@@ -759,35 +770,58 @@ export const DiagnosticProcessModal = ({
 											</div>
 										</div>
 
-										<div className="grid gap-3 sm:grid-cols-2">
-											{PILLARS.map((pillar) => {
-												const value =
-													flow.phase1Summary?.pillarPercentages[pillar.key] ?? 0
-												const maturity = classifyMaturity(value)
+										<div className="grid gap-4 xl:grid-cols-3">
+											{phase1StructuralInsights.map((insight) => {
+												const InsightIcon = getStructuralInsightIcon(insight.id)
 
 												return (
 													<div
-														key={pillar.key}
-														className="rounded-2xl border p-4"
-														style={getPillarIdentityCardStyle(pillar.key)}
+														key={insight.id}
+														className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg"
 													>
-														<p
-															className="text-xs uppercase tracking-[0.14em]"
-															style={getPillarIdentityLabelStyle(pillar.key)}
-														>
-															{maturity.label}
+														<p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+															{insight.valueLabel}
 														</p>
-														<p className="mt-2 text-lg font-semibold">
-															{pillar.title}
+														<div className="mt-2 flex items-center gap-2">
+															<InsightIcon className="size-4 text-primary" />
+															<p className="text-base font-semibold">
+																{insight.title}
+															</p>
+														</div>
+														<p className="mt-3 text-sm font-semibold text-foreground">
+															{insight.status}
 														</p>
-														<p className="mt-2 text-3xl font-bold">{value}%</p>
-														<p className="mt-2 text-sm text-foreground/78">
-															{maturity.description}
+														<p className="mt-2 text-sm leading-6 text-foreground/78">
+															{insight.description}
 														</p>
 													</div>
 												)
 											})}
 										</div>
+
+										{phase1FinalSummary ? (
+											<div
+												className={cn(
+													'rounded-2xl border-2 bg-card/80 p-5 backdrop-blur-lg',
+													phase1FinalSummary.scenario === 'green'
+														? 'border-emerald-500 shadow-[0_0_24px_rgba(16,185,129,0.22)]'
+														: 'border-red-500 shadow-[0_0_24px_rgba(239,68,68,0.22)]',
+												)}
+											>
+												<div className="rounded-2xl border-transparent bg-transparent p-0">
+													<p className="text-base font-semibold text-foreground">
+														{phase1FinalSummary.title}
+													</p>
+													<div className="mt-3 space-y-3 text-sm leading-6 text-foreground/78">
+														{phase1FinalSummary.description
+															.split('\n\n')
+															.map((paragraph) => (
+																<p key={paragraph}>{paragraph}</p>
+															))}
+													</div>
+												</div>
+											</div>
+										) : null}
 
 										<div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 											<Button

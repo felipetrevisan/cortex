@@ -18,6 +18,14 @@ export interface CortexAchievementItem {
 	status: CortexAchievementStatus
 }
 
+export interface DashboardResultReportItem {
+	key: 'phase1' | 'phase2' | 'after45' | 'after90'
+	title: string
+	status: 'available' | 'locked' | 'coming-soon'
+	href: string | null
+	description: string
+}
+
 interface DashboardCtaContent {
 	label: string
 	title: string
@@ -93,6 +101,57 @@ const resolveAchievements = ({
 
 const getActiveAchievement = (achievements: CortexAchievementItem[]) =>
 	achievements.find((item) => item.status === 'active') ?? null
+
+const buildResultReports = ({
+	cycleId,
+	hasPhase1,
+	hasPhase2,
+	hasReeval45,
+	hasReeval90,
+}: {
+	cycleId: string | null
+	hasPhase1: boolean
+	hasPhase2: boolean
+	hasReeval45: boolean
+	hasReeval90: boolean
+}): DashboardResultReportItem[] => [
+	{
+		key: 'phase1',
+		title: 'Resultado Completo Fase 1',
+		status: hasPhase1 && cycleId ? 'available' : 'locked',
+		href: hasPhase1 && cycleId ? `/dashboard/results/${cycleId}/phase-1` : null,
+		description: hasPhase1
+			? 'Acesse a leitura completa do diagnóstico estrutural.'
+			: 'Disponível após concluir a Fase 1.',
+	},
+	{
+		key: 'phase2',
+		title: 'Resultado Completo Fase 2',
+		status: hasPhase2 && cycleId ? 'available' : 'locked',
+		href: hasPhase2 && cycleId ? `/dashboard/results/${cycleId}/phase-2` : null,
+		description: hasPhase2
+			? 'Acesse a leitura aprofundada do pilar crítico.'
+			: 'Disponível após concluir a Fase 2.',
+	},
+	{
+		key: 'after45',
+		title: 'Resultado Completo após 45 dias',
+		status: hasReeval45 ? 'coming-soon' : 'locked',
+		href: null,
+		description: hasReeval45
+			? 'Comparativo da reavaliação em preparação.'
+			: 'Disponível após concluir a reavaliação de 45 dias.',
+	},
+	{
+		key: 'after90',
+		title: 'Resultado Completo após 90 dias',
+		status: hasReeval90 ? 'coming-soon' : 'locked',
+		href: null,
+		description: hasReeval90
+			? 'Comparativo completo do novo ciclo em preparação.'
+			: 'Disponível após concluir o novo ciclo comparativo de 90 dias.',
+	},
+]
 
 const resolveAchievementCta = ({
 	activeAchievement,
@@ -255,7 +314,13 @@ export const useDashboardData = () => {
 					emotional: 0,
 				},
 				history: [],
-				comparative: comparativeQuery.report,
+				resultReports: buildResultReports({
+					cycleId: null,
+					hasPhase1: false,
+					hasPhase2: false,
+					hasReeval45: false,
+					hasReeval90: false,
+				}),
 				repurchaseOffer: null,
 				achievements: resolveAchievements({
 					hasNicheAccess: false,
@@ -313,7 +378,13 @@ export const useDashboardData = () => {
 					emotional: 0,
 				},
 				history: comparativeQuery.data ?? [],
-				comparative: comparativeQuery.report,
+				resultReports: buildResultReports({
+					cycleId: null,
+					hasPhase1: false,
+					hasPhase2: false,
+					hasReeval45: false,
+					hasReeval90: false,
+				}),
 				repurchaseOffer: null,
 				achievements,
 			}
@@ -391,7 +462,13 @@ export const useDashboardData = () => {
 			currentBlock: protocol?.model.currentBlock ?? 1,
 			pillars: cycle.pillars,
 			history: comparativeQuery.data ?? [],
-			comparative: comparativeQuery.report,
+			resultReports: buildResultReports({
+				cycleId: cycle.id,
+				hasPhase1: Boolean(cycle.timeline.phase1CompletedAt),
+				hasPhase2: Boolean(cycle.timeline.phase2CompletedAt),
+				hasReeval45: Boolean(cycle.timeline.reeval45CompletedAt),
+				hasReeval90: Boolean(cycle.timeline.reeval90CompletedAt),
+			}),
 			repurchaseOffer:
 				temporalRules.canStartNewCycle &&
 				activeNiche.repurchasePriceCents != null
@@ -404,7 +481,6 @@ export const useDashboardData = () => {
 		}
 	}, [
 		comparativeQuery.data,
-		comparativeQuery.report,
 		cycleQuery.data,
 		nicheAccess.activeNiche,
 		nicheAccess.availableNiches,
