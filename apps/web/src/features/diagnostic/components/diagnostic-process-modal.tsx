@@ -204,6 +204,20 @@ const resolveActivePillar = (
 const resolveProgressColorToken = (
 	flow: ReturnType<typeof useDiagnosticProcessFlow>,
 ) => {
+	if (flow.stage === 'phase2') {
+		if (flow.phase2.currentQuestion?.questionType === 'state') {
+			return 'accent'
+		}
+
+		if (flow.phase2.currentQuestion?.questionType === 'technical') {
+			const technicalPillar = flow.phase2.criticalPillar
+			return (
+				PILLARS.find((pillar) => pillar.key === technicalPillar)?.colorToken ??
+				'primary'
+			)
+		}
+	}
+
 	const activePillar = resolveActivePillar(flow)
 	if (!activePillar) return 'primary'
 
