@@ -1082,10 +1082,10 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 
 		const needsCritical =
 			phase1Summary.criticalCandidates.length > 1 && !selectedCriticalPillar
-		const needsStrong =
-			phase1Summary.strongCandidates.length > 1 && !selectedStrongPillar
-		if (needsCritical || needsStrong) {
-			setErrorMessage('Selecione os pilares para resolver o empate.')
+		if (needsCritical) {
+			setErrorMessage(
+				'Selecione o pilar crítico para resolver o empate estrutural.',
+			)
 			return
 		}
 
@@ -1094,10 +1094,15 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 		const toastId = toast.loading('Salvando desempate...')
 
 		try {
+			const resolvedStrongPillar =
+				selectedStrongPillar ??
+				phase1Summary.strongPillar ??
+				phase1Summary.strongCandidates[0] ??
+				null
 			const resolvedSummary = computePhase1Summary(
 				toPillarScoreBuckets(phase1Pillars, phase1Answers),
 				selectedCriticalPillar,
-				selectedStrongPillar,
+				resolvedStrongPillar,
 			)
 
 			if (!resolvedSummary.criticalPillar || !resolvedSummary.strongPillar) {

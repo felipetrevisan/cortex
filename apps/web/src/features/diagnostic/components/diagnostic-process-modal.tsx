@@ -206,7 +206,7 @@ const resolveProgressColorToken = (
 ) => {
 	if (flow.stage === 'phase2') {
 		if (flow.phase2.currentQuestion?.questionType === 'state') {
-			return 'accent'
+			return 'tertiary'
 		}
 
 		if (flow.phase2.currentQuestion?.questionType === 'technical') {
@@ -662,9 +662,16 @@ export const DiagnosticProcessModal = ({
 
 								{flow.stage === 'phase1-tie' ? (
 									<div className="space-y-6">
-										<div className="rounded-2xl border border-amber-500/35 bg-amber-500/10 p-4 text-sm">
-											Empate detectado. Selecione manualmente os pilares para
-											continuar.
+										<div className="rounded-2xl border border-red-500/40 bg-red-500/12 p-4 text-sm shadow-[0_0_22px_rgba(239,68,68,0.14)]">
+											<p className="font-semibold text-red-700 dark:text-red-300">
+												Empate estrutural detectado
+											</p>
+											<p className="mt-2 text-red-700/90 dark:text-red-200/90">
+												A escolha do pilar crítico é uma etapa importante do
+												diagnóstico. Selecione com atenção o ponto que hoje mais
+												limita previsibilidade, estabilidade e conclusão do
+												projeto.
+											</p>
 										</div>
 
 										{flow.tieBreak.criticalCandidates.length > 1 ? (
@@ -703,25 +710,21 @@ export const DiagnosticProcessModal = ({
 													className="font-semibold"
 													style={getPillarOutcomeLabelStyle('strong')}
 												>
-													Escolha o pilar forte
+													Pilares fortes empatados
 												</h4>
+												<p className="text-sm text-muted-foreground">
+													Os pilares abaixo empataram como principais forças
+													estruturais neste ciclo.
+												</p>
 												<div className="grid gap-3 sm:grid-cols-2">
 													{flow.tieBreak.strongCandidates.map((pillar) => (
-														<Button
+														<div
 															key={`strong:${pillar}`}
-															variant="outline"
-															className={cn(
-																'h-12 justify-start rounded-2xl px-4',
-																flow.tieBreak.selectedStrongPillar === pillar
-																	? 'border-primary bg-primary/10'
-																	: '',
-															)}
-															onClick={() =>
-																flow.setSelectedStrongPillar(pillar)
-															}
+															className="rounded-2xl border p-4"
+															style={getPillarOutcomeCardStyle('strong')}
 														>
 															{pillarLabel(pillar)}
-														</Button>
+														</div>
 													))}
 												</div>
 											</div>
