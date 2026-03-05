@@ -437,27 +437,17 @@ export const DiagnosticResultScreen = ({
 								{result.overviewText}
 							</p>
 							{result.kind === 'phase2' ? (
-								<div className="rounded-2xl border border-border/60 bg-background/35 p-4">
-									<p className="text-sm leading-6 text-foreground/80">
-										{generalMaturity.label}: {result.overviewText}
-									</p>
-									<div className="mt-3 flex items-center gap-3">
-										<div className="h-3 flex-1 rounded-full bg-secondary/70">
-											<div
-												className="h-full rounded-full transition-all duration-500"
-												style={{
-													width: `${Math.max(0, Math.min(100, result.generalIndex))}%`,
-													background:
-														'linear-gradient(90deg, color-mix(in oklch, var(--tertiary) 88%, white) 0%, var(--tertiary) 100%)',
-													boxShadow:
-														'0 0 16px color-mix(in oklch, var(--tertiary) 24%, transparent)',
-												}}
-											/>
-										</div>
-										<span className="text-sm font-semibold">
-											{result.generalIndex}%
-										</span>
-									</div>
+								<div className="h-3 rounded-full bg-secondary/70">
+									<div
+										className="h-full rounded-full transition-all duration-500"
+										style={{
+											width: `${Math.max(0, Math.min(100, result.generalIndex))}%`,
+											background:
+												'linear-gradient(90deg, color-mix(in oklch, var(--tertiary) 88%, white) 0%, var(--tertiary) 100%)',
+											boxShadow:
+												'0 0 16px color-mix(in oklch, var(--tertiary) 24%, transparent)',
+										}}
+									/>
 								</div>
 							) : null}
 						</div>
