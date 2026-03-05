@@ -3,6 +3,7 @@
 import {
 	classifyGeneralStructure,
 	classifyMaturity,
+	classifyPhase2Refined,
 } from '@cortex/shared/domain/diagnostic-calculations'
 import { Badge } from '@cortex/ui/components/badge'
 import {
@@ -92,6 +93,159 @@ const getFinalSummaryCardStyle = (
 		boxShadow:
 			'0 0 28px color-mix(in oklch, var(--color-red-500) 24%, transparent)',
 	}
+}
+
+const getPhase2ExecutiveCardStyle = (
+	level: 'critico' | 'instavel' | 'funcional' | 'solido',
+): CSSProperties => {
+	if (level === 'critico') {
+		return {
+			borderColor: 'color-mix(in oklch, var(--color-red-700) 60%, transparent)',
+			background:
+				'linear-gradient(135deg, color-mix(in oklch, var(--color-red-700) 24%, var(--card)) 0%, color-mix(in oklch, var(--color-red-700) 12%, var(--card)) 100%)',
+			boxShadow:
+				'0 18px 48px rgba(2,8,23,0.14), 0 0 36px color-mix(in oklch, var(--color-red-700) 26%, transparent)',
+		}
+	}
+
+	if (level === 'instavel') {
+		return {
+			borderColor:
+				'color-mix(in oklch, var(--color-orange-500) 56%, transparent)',
+			background:
+				'linear-gradient(135deg, color-mix(in oklch, var(--color-orange-500) 18%, var(--card)) 0%, color-mix(in oklch, var(--color-red-500) 12%, var(--card)) 100%)',
+			boxShadow:
+				'0 18px 48px rgba(2,8,23,0.14), 0 0 34px color-mix(in oklch, var(--color-orange-500) 24%, transparent)',
+		}
+	}
+
+	if (level === 'funcional') {
+		return {
+			borderColor:
+				'color-mix(in oklch, var(--color-yellow-500) 56%, transparent)',
+			background:
+				'linear-gradient(135deg, color-mix(in oklch, var(--color-yellow-500) 18%, var(--card)) 0%, color-mix(in oklch, var(--color-amber-500) 10%, var(--card)) 100%)',
+			boxShadow:
+				'0 18px 48px rgba(2,8,23,0.14), 0 0 34px color-mix(in oklch, var(--color-yellow-500) 24%, transparent)',
+		}
+	}
+
+	return {
+		borderColor:
+			'color-mix(in oklch, var(--color-emerald-500) 58%, transparent)',
+		background:
+			'linear-gradient(135deg, color-mix(in oklch, var(--color-emerald-500) 16%, var(--card)) 0%, color-mix(in oklch, var(--color-emerald-500) 8%, var(--card)) 100%)',
+		boxShadow:
+			'0 18px 48px rgba(2,8,23,0.14), 0 0 34px color-mix(in oklch, var(--color-emerald-500) 24%, transparent)',
+	}
+}
+
+const getTechnicalPatternStyle = (
+	severity: 'baixa' | 'moderada' | 'alta',
+): CSSProperties => {
+	if (severity === 'alta') {
+		return {
+			borderColor: 'color-mix(in oklch, var(--color-red-500) 54%, transparent)',
+			background:
+				'linear-gradient(145deg, color-mix(in oklch, var(--color-red-500) 16%, var(--card)) 0%, color-mix(in oklch, var(--color-red-500) 8%, var(--card)) 100%)',
+			boxShadow:
+				'0 0 26px color-mix(in oklch, var(--color-red-500) 24%, transparent)',
+		}
+	}
+
+	if (severity === 'moderada') {
+		return {
+			borderColor:
+				'color-mix(in oklch, var(--color-orange-500) 54%, transparent)',
+			background:
+				'linear-gradient(145deg, color-mix(in oklch, var(--color-orange-500) 14%, var(--card)) 0%, color-mix(in oklch, var(--color-orange-500) 7%, var(--card)) 100%)',
+			boxShadow:
+				'0 0 24px color-mix(in oklch, var(--color-orange-500) 20%, transparent)',
+		}
+	}
+
+	return {
+		borderColor:
+			'color-mix(in oklch, var(--color-yellow-500) 48%, transparent)',
+		background:
+			'linear-gradient(145deg, color-mix(in oklch, var(--color-yellow-500) 12%, var(--card)) 0%, color-mix(in oklch, var(--color-yellow-500) 6%, var(--card)) 100%)',
+		boxShadow:
+			'0 0 20px color-mix(in oklch, var(--color-yellow-500) 16%, transparent)',
+	}
+}
+
+const getTechnicalPatternBadgeClass = (
+	severity: 'baixa' | 'moderada' | 'alta',
+): string => {
+	if (severity === 'alta') return 'bg-red-500/85 text-red-50'
+	if (severity === 'moderada') return 'bg-orange-500/85 text-orange-50'
+	return 'bg-yellow-500/85 text-yellow-950'
+}
+
+const getTechnicalPatternSeverityLabel = (
+	severity: 'baixa' | 'moderada' | 'alta',
+): string => {
+	if (severity === 'alta') return 'Criticidade alta'
+	if (severity === 'moderada') return 'Criticidade moderada'
+	return 'Criticidade baixa'
+}
+
+const getTechnicalPatternTitleClass = (
+	severity: 'baixa' | 'moderada' | 'alta',
+): string => {
+	if (severity === 'alta') return 'text-red-300'
+	if (severity === 'moderada') return 'text-orange-300'
+	return 'text-yellow-300'
+}
+
+const getStateBlockStyle = (
+	level: 'critico' | 'moderado' | 'favoravel',
+): CSSProperties => {
+	if (level === 'critico') {
+		return {
+			borderColor: 'color-mix(in oklch, var(--color-red-500) 52%, transparent)',
+			background:
+				'linear-gradient(145deg, color-mix(in oklch, var(--color-red-500) 12%, var(--card)) 0%, color-mix(in oklch, var(--color-red-500) 6%, var(--card)) 100%)',
+			boxShadow:
+				'0 0 24px color-mix(in oklch, var(--color-red-500) 20%, transparent)',
+		}
+	}
+
+	if (level === 'moderado') {
+		return {
+			borderColor:
+				'color-mix(in oklch, var(--color-yellow-500) 52%, transparent)',
+			background:
+				'linear-gradient(145deg, color-mix(in oklch, var(--color-yellow-500) 12%, var(--card)) 0%, color-mix(in oklch, var(--color-yellow-500) 6%, var(--card)) 100%)',
+			boxShadow:
+				'0 0 24px color-mix(in oklch, var(--color-yellow-500) 20%, transparent)',
+		}
+	}
+
+	return {
+		borderColor:
+			'color-mix(in oklch, var(--color-emerald-500) 52%, transparent)',
+		background:
+			'linear-gradient(145deg, color-mix(in oklch, var(--color-emerald-500) 12%, var(--card)) 0%, color-mix(in oklch, var(--color-emerald-500) 6%, var(--card)) 100%)',
+		boxShadow:
+			'0 0 24px color-mix(in oklch, var(--color-emerald-500) 20%, transparent)',
+	}
+}
+
+const getStateBlockLabelClass = (
+	level: 'critico' | 'moderado' | 'favoravel',
+): string => {
+	if (level === 'critico') return 'text-red-400'
+	if (level === 'moderado') return 'text-yellow-400'
+	return 'text-emerald-400'
+}
+
+const getStateBlockLabel = (
+	level: 'critico' | 'moderado' | 'favoravel',
+): string => {
+	if (level === 'critico') return 'Crítico'
+	if (level === 'moderado') return 'Moderado'
+	return 'Favorável'
 }
 
 const DetailBarChart = ({
@@ -235,7 +389,7 @@ export const DiagnosticResultScreen = ({
 	const generalMaturity =
 		result.kind === 'phase1'
 			? classifyGeneralStructure(result.generalIndex)
-			: classifyMaturity(result.generalIndex)
+			: classifyPhase2Refined(result.generalIndex)
 
 	return (
 		<main className="min-h-dvh pb-12">
@@ -282,7 +436,14 @@ export const DiagnosticResultScreen = ({
 					</Card>
 				</div>
 
-				<Card className="rounded-4xl border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklch,var(--primary)_12%,var(--card))_0%,color-mix(in_oklch,var(--accent)_8%,var(--card))_100%)] backdrop-blur-xl shadow-[0_18px_48px_rgba(2,8,23,0.14)]">
+				<Card
+					className="rounded-4xl border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklch,var(--primary)_12%,var(--card))_0%,color-mix(in_oklch,var(--accent)_8%,var(--card))_100%)] backdrop-blur-xl shadow-[0_18px_48px_rgba(2,8,23,0.14)]"
+					style={
+						result.kind === 'phase2'
+							? getPhase2ExecutiveCardStyle(generalMaturity.level)
+							: undefined
+					}
+				>
 					<CardContent className="grid gap-6 p-7 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
 						<div className="space-y-4">
 							<div className="flex items-center gap-2 text-primary">
@@ -379,33 +540,7 @@ export const DiagnosticResultScreen = ({
 							</p>
 						</div>
 					</div>
-				) : (
-					<Card
-						className="rounded-3xl border-border/70 bg-background/60 backdrop-blur-lg"
-						style={getPillarOutcomeCardStyle('critical')}
-					>
-						<CardContent className="space-y-2 p-5">
-							<p
-								className="text-xs uppercase tracking-[0.14em]"
-								style={getPillarOutcomeLabelStyle('critical')}
-							>
-								Leitura refinada
-							</p>
-							<p
-								className="text-sm font-semibold"
-								style={getPillarOutcomeLabelStyle('critical')}
-							>
-								Pilar crítico: {pillarTitle(result.criticalPillar)}
-							</p>
-							<p
-								className="text-sm font-semibold"
-								style={getPillarOutcomeLabelStyle('critical')}
-							>
-								Pontos críticos: {result.criticalPoints.length}
-							</p>
-						</CardContent>
-					</Card>
-				)}
+				) : null}
 
 				<div className="grid gap-5 xl:grid-cols-[1.6fr_1fr]">
 					<Card className="rounded-3xl border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]">
@@ -443,6 +578,41 @@ export const DiagnosticResultScreen = ({
 					/>
 				</div>
 
+				{result.kind === 'phase2' ? (
+					<div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+						{result.stateBlocks.map((block) => (
+							<Card
+								key={block.id}
+								className="rounded-3xl border bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]"
+								style={getStateBlockStyle(block.level)}
+							>
+								<CardHeader className="space-y-3 p-6 pb-3">
+									<div className="flex items-center justify-between gap-3">
+										<CardTitle className="text-base">{block.title}</CardTitle>
+										<span className="text-sm font-semibold">
+											{block.value}%
+										</span>
+									</div>
+									<div
+										className={cn(
+											'inline-flex w-fit items-center gap-2 rounded-full border border-current/35 bg-black/10 px-2.5 py-1 text-xs font-semibold',
+											getStateBlockLabelClass(block.level),
+										)}
+									>
+										<span className="size-1.5 rounded-full bg-current" />
+										{getStateBlockLabel(block.level)}
+									</div>
+								</CardHeader>
+								<CardContent className="p-6 pt-2">
+									<p className="text-sm leading-6 text-foreground/82">
+										{block.description}
+									</p>
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				) : null}
+
 				{result.kind === 'phase1' ? (
 					<div className="grid gap-5 xl:grid-cols-3">
 						{result.structuralInsights.map((insight) => {
@@ -478,45 +648,54 @@ export const DiagnosticResultScreen = ({
 						style={getPillarOutcomeCardStyle('critical')}
 					>
 						<CardHeader className="p-6 pb-3">
-							<CardDescription>Diagnóstico ponto a ponto</CardDescription>
+							<CardDescription>Leitura consolidada por padrões</CardDescription>
 							<CardTitle
 								className="text-lg"
 								style={getPillarOutcomeLabelStyle('critical')}
 							>
-								Pontos críticos identificados
+								Padrões técnicos prioritários
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="grid gap-4 p-6 pt-2">
-							{result.criticalPoints.length === 0 ? (
+							{result.technicalPatterns.length === 0 ? (
 								<div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm">
-									Nenhum ponto crítico foi identificado nesta fase.
+									Nenhum padrão técnico crítico foi identificado nesta fase.
 								</div>
 							) : (
-								result.criticalPoints.map((point) => (
+								result.technicalPatterns.map((pattern) => (
 									<div
-										key={point.id}
-										className="rounded-2xl border border-red-500/25 bg-red-500/10 p-4"
+										key={pattern.id}
+										className="rounded-2xl border p-4"
+										style={getTechnicalPatternStyle(pattern.severity)}
 									>
-										<div className="flex flex-wrap items-center gap-2">
+										<div className="flex flex-wrap items-center justify-between gap-3">
+											<p
+												className={cn(
+													'text-sm font-semibold uppercase tracking-[0.12em]',
+													getTechnicalPatternTitleClass(pattern.severity),
+												)}
+											>
+												{pattern.title}
+											</p>
 											<Badge
 												className={cn(
 													'rounded-full',
-													point.questionType === 'technical'
-														? 'bg-primary text-primary-foreground'
-														: 'bg-accent text-accent-foreground',
+													getTechnicalPatternBadgeClass(pattern.severity),
 												)}
 											>
-												{point.questionType === 'technical'
-													? 'Técnico'
-													: 'Estado atual'}
+												{pattern.lowScoreCount}{' '}
+												{pattern.lowScoreCount === 1
+													? 'sinal crítico'
+													: 'sinais críticos'}
 											</Badge>
-											<span className="text-sm font-semibold">
-												Nota {point.score}
-											</span>
 										</div>
-										<p className="mt-3 font-semibold">{point.title}</p>
+										<p className="mt-1 text-xs font-medium text-foreground/70">
+											{getTechnicalPatternSeverityLabel(pattern.severity)} ·{' '}
+											{pattern.lowScoreCount}/{pattern.questionCount} pontos do
+											padrão
+										</p>
 										<p className="mt-2 text-sm leading-6 text-foreground/78">
-											{point.diagnosis}
+											{pattern.description}
 										</p>
 									</div>
 								))

@@ -5,18 +5,15 @@ import { PILLARS } from '@cortex/shared/constants/pillars'
 import {
 	classifyGeneralStructure,
 	classifyMaturity,
-	getCriticalPoints,
+	classifyPhase2Refined,
+	resolvePhase2DominantVariable,
+	toPhase2DominantVariableText,
 } from '@cortex/shared/domain/diagnostic-calculations'
 import { mapDiagnosticCycle } from '@cortex/shared/models/diagnostic-cycle.model'
 import type { Tables } from '@cortex/shared/supabase/database.types'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/components/auth-provider'
 import { useActiveNicheAccess } from '@/features/auth/hooks/use-active-niche-access'
-import {
-	type DiagnosticPhase2QuestionBlueprint,
-	getBlueprintPhase2Questions,
-	useDiagnosticBlueprintQuery,
-} from '@/features/diagnostic/hooks/use-diagnostic-blueprint-query'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import type { ResultPhaseSlug } from '../lib/result-routes'
 
@@ -252,29 +249,32 @@ const getPhase2OverviewText = (input: {
 	technicalIndex: number
 	stateIndex: number
 	criticalPillar: PillarKey | null
-	criticalPointsCount: number
 }): string => {
 	const pillar = pillarTitle(input.criticalPillar)
-
-	if (input.criticalPointsCount === 0) {
-		return `A leitura aprofundada de ${pillar} não identificou pontos críticos imediatos. O foco agora é transformar consistência em ritmo de execução.`
-	}
-
-	const maturity = classifyMaturity(input.generalIndex)
+	const maturity = classifyPhase2Refined(input.generalIndex)
+	const dominantVariable = resolvePhase2DominantVariable(
+		input.technicalIndex,
+		input.stateIndex,
+	)
+	const variableText = toPhase2DominantVariableText(dominantVariable)
 
 	if (maturity.level === 'critico') {
-		return `${pillar} segue com risco refinado elevado. Há ${input.criticalPointsCount} ponto(s) crítico(s) comprometendo a capacidade de concluir com estabilidade.`
+		return `Seu pilar de ${pillar} apresenta falhas estruturais significativas. ${variableText} está reduzindo drasticamente sua capacidade de conclusão. Recomenda-se intervenção imediata antes de qualquer avanço.`
 	}
 
-	if (input.technicalIndex < input.stateIndex) {
-		return `${pillar} concentra gargalos mais técnicos do que emocionais/operacionais. A estrutura de método precisa ser ajustada antes de escalar.`
+	if (maturity.level === 'instavel') {
+		return `${pillar} opera abaixo do necessário. ${variableText} está comprometendo mais que o esperado. A execução é possível mas altamente vulnerável a interrupções.`
 	}
 
-	if (input.stateIndex < input.technicalIndex) {
-		return `${pillar} sofre mais pela condição atual do que pelo método. Energia, foco e estabilidade estão reduzindo consistência de aplicação.`
+	if (maturity.level === 'funcional') {
+		return `Você possui estrutura suficiente em ${pillar} para avançar de forma sustentável. ${variableText} apresenta resistências, mas o sistema opera. Ajustes específicos podem elevar significativamente a performance.`
 	}
 
-	return `${pillar} apresenta fragilidade equilibrada entre método e estado atual. O plano corretivo deve atacar os dois eixos em paralelo.`
+	if (dominantVariable === 'both') {
+		return `Alto desempenho em ${pillar}. Método e condição operam de forma integrada e favorável. Mantenha o ritmo e foque em refinamentos pontuais.`
+	}
+
+	return `Alto desempenho em ${pillar}. ${variableText} operam de forma integrada e favorável. Mantenha o ritmo e foque em refinamentos pontuais.`
 }
 
 const buildDonutBackground = (
@@ -295,6 +295,149 @@ const buildDonutBackground = (
 	})
 
 	return `conic-gradient(${parts.join(', ')})`
+}
+
+interface Phase2TechnicalPatternDefinition {
+	order: 1 | 2 | 3 | 4
+	questionNumbers: number[]
+	title: string
+	description: string
+}
+
+const PHASE2_TECHNICAL_PATTERNS: Record<
+	PillarKey,
+	Phase2TechnicalPatternDefinition[]
+> = {
+	clarity: [
+		{
+			order: 1,
+			questionNumbers: [1, 2, 5, 6],
+			title: 'Padrão 1: Definição vaga',
+			description:
+				'Você opera sem definição clara do que significa concluir. O sucesso do projeto está nebuloso, o que torna impossível saber quando chegar lá ou se está no caminho certo. A ausência de critérios objetivos gera constante redefinição de expectativas.',
+		},
+		{
+			order: 2,
+			questionNumbers: [8, 9, 12, 14],
+			title: 'Padrão 2: Desalinhamento estratégico',
+			description:
+				'Suas decisões diárias não estão conectadas a uma direção maior. Você tem atividade mas não progresso estratégico, prioridades competem entre si sem hierarquia clara, e a ação se desgasta em caminhos que não levam ao objetivo central.',
+		},
+		{
+			order: 3,
+			questionNumbers: [3, 4, 10, 13],
+			title: 'Padrão 3: Instabilidade de direção',
+			description:
+				'Você redefine constantemente o que está construindo. O escopo se expande descontroladamente, metas mudam diante de dificuldades, e a estratégia é revisada antes de gerar resultados. Este ciclo de reinício impede acúmulo de progresso real.',
+		},
+		{
+			order: 4,
+			questionNumbers: [7, 11],
+			title: 'Padrão 4: Confusão e imprecisão operacional',
+			description:
+				'Você confunde ocupação com produtividade e inicia sem preparo adequado. Movimento constante mascara a ausência de entregas concretas, enquanto a falta de clareza mínima no início gera retrabalho e dúvida ao longo do caminho.',
+		},
+	],
+	structure: [
+		{
+			order: 1,
+			questionNumbers: [1, 2, 3, 9],
+			title: 'Padrão 1: Fragmentação operacional',
+			description:
+				'Você trabalha com informações dispersas e tarefas mal definidas. Metas não se transformam em ações concretas, checklists são inexistentes ou ignorados, e decisões importantes se perdem na memória. A fragmentação gera ansiedade operacional constante.',
+		},
+		{
+			order: 2,
+			questionNumbers: [4, 5, 8, 10],
+			title: 'Padrão 2: Planejamento deficiente',
+			description:
+				'Você executa antes de planejar adequadamente. Prazos são estabelecidos sem base realista, obstáculos surgem como surpresas, e o retrabalho se acumula por falta de antecipação. A pressa inicial gera lentidão posterior.',
+		},
+		{
+			order: 3,
+			questionNumbers: [6, 7, 11, 12],
+			title: 'Padrão 3: Acompanhamento inexistente',
+			description:
+				'Você não monitora o que está acontecendo. O progresso é desconhecido, ajustes só ocorrem quando já é tarde, e o projeto depende exclusivamente de você estar motivado. A ausência de visibilidade impede correções de rota.',
+		},
+		{
+			order: 4,
+			questionNumbers: [13, 14],
+			title: 'Padrão 4: Método não replicável',
+			description:
+				'Você não possui sistema próprio de organização. Cada projeto é reinventado do zero, sem método transferível, e a organização atual não reduz ansiedade. A dependência de soluções improvisadas gera inconsistência entre projetos.',
+		},
+	],
+	execution: [
+		{
+			order: 1,
+			questionNumbers: [1, 10, 12, 13],
+			title: 'Padrão 1: Dependência emocional para iniciar',
+			description:
+				'Você depende de estar motivado para agir. A execução só acontece no "clima" certo, intenções raramente viram ação imediata, e a busca por perfeição impede finalização. Seu progresso é refém de oscilações internas.',
+		},
+		{
+			order: 2,
+			questionNumbers: [2, 3, 4, 5],
+			title: 'Padrão 2: Gestão de atenção fragilizada',
+			description:
+				'Você não protege seu tempo de trabalho profundo. Blocos de tempo são inexistentes, multitarefa fragmenta seu esforço, distrações dominam o ambiente, e metas diárias mínimas não são estabelecidas. O foco é intermitente e superficial.',
+		},
+		{
+			order: 3,
+			questionNumbers: [6, 8, 9, 14],
+			title: 'Padrão 3: Ausência de ritmo',
+			description:
+				'Você não mantém regularidade na execução. Avaliações de desempenho não ocorrem, ritmo é imprevisível, ciclos longos de paralisação são frequentes, e constância por semanas é inatingível. O projeto avança em picos esporádicos e morre em vales prolongados.',
+		},
+		{
+			order: 4,
+			questionNumbers: [7, 11],
+			title: 'Padrão 4: Quebra de compromissos',
+			description:
+				'Você inicia mas não sustenta. Falhas não são corrigidas rapidamente, microcompromissos são quebrados regularmente, e a palavra dada a si mesmo perde valor. A desconfiança interna mina cada nova tentativa de regularidade.',
+		},
+	],
+	emotional: [
+		{
+			order: 1,
+			questionNumbers: [3, 5, 11, 12],
+			title: 'Padrão 1: Intolerância à imperfeição',
+			description:
+				'Você é refém da própria exigência. Imperfeição inicial é inaceitável, erros são dramatizados, comparações destrutivas são constantes, e progresso parcial é ignorado. A busca pelo ideal impede o real.',
+		},
+		{
+			order: 2,
+			questionNumbers: [4, 13, 1, 2],
+			title: 'Padrão 2: Vulnerabilidade à crítica e exposição',
+			description:
+				'Você evita exposição por medo de julgamento. Críticas desestabilizam, ansiedade não é regulada, gatilhos emocionais passam despercebidos, e técnicas de controle são inexistentes. O projeto fica escondido para se manter seguro.',
+		},
+		{
+			order: 3,
+			questionNumbers: [6, 7, 8, 10],
+			title: 'Padrão 3: Recuperação lenta de frustrações',
+			description:
+				'Você demora para retomar após contratempos. Frustrações paralisam, autossabotagem é invisível, energia mental não é regulada antes de agir, e decisões sob estresse são impulsivas. O tempo de recuperação consome o tempo de execução.',
+		},
+		{
+			order: 4,
+			questionNumbers: [9, 14],
+			title: 'Padrão 4: Desconforto emocional paralisante',
+			description:
+				'Você evita ação quando emocionalmente desconfortável. A perspectiva de longo prazo se perde diante de tensões imediatas, e agir com desconforto é impossível. O projeto espera você se sentir bem para continuar.',
+		},
+	],
+}
+
+interface Phase2TechnicalPatternResult {
+	id: string
+	order: 1 | 2 | 3 | 4
+	title: string
+	description: string
+	lowScoreCount: number
+	questionCount: number
+	severity: 'baixa' | 'moderada' | 'alta'
 }
 
 interface Phase1DetailedResult {
@@ -328,7 +471,14 @@ interface Phase2DetailedResult {
 	stateIndex: number
 	criticalPillar: PillarKey | null
 	overviewText: string
-	criticalPoints: ReturnType<typeof getCriticalPoints>
+	technicalPatterns: Phase2TechnicalPatternResult[]
+	stateBlocks: Array<{
+		id: 'physical' | 'psychological' | 'environmental' | 'social'
+		title: string
+		value: number
+		level: 'critico' | 'moderado' | 'favoravel'
+		description: string
+	}>
 	metrics: Array<{
 		label: string
 		value: number
@@ -405,57 +555,87 @@ const buildPhase1Result = (input: {
 	}
 }
 
+const buildPhase2TechnicalPatterns = (input: {
+	rows: Phase2ResponseRow[]
+	criticalPillar: PillarKey | null
+}): Phase2TechnicalPatternResult[] => {
+	if (!input.criticalPillar) return []
+
+	const patternDefinitions = PHASE2_TECHNICAL_PATTERNS[input.criticalPillar]
+	const scoresByQuestion = new Map<number, number>()
+
+	for (const row of input.rows) {
+		if (!row.question_type.startsWith('technical')) continue
+		if (row.question_number < 1 || row.question_number > 14) continue
+		scoresByQuestion.set(row.question_number, row.score)
+	}
+
+	return patternDefinitions
+		.map((pattern) => {
+			const lowScoreCount = pattern.questionNumbers.reduce((total, number) => {
+				const score = scoresByQuestion.get(number)
+				if (typeof score !== 'number') return total
+				return score <= 2 ? total + 1 : total
+			}, 0)
+			const questionCount = pattern.questionNumbers.length
+			const intensity = questionCount > 0 ? lowScoreCount / questionCount : 0
+			const severity: Phase2TechnicalPatternResult['severity'] =
+				intensity >= 0.75 ? 'alta' : intensity >= 0.5 ? 'moderada' : 'baixa'
+
+			return {
+				id: `${input.criticalPillar}:pattern-${pattern.order}`,
+				order: pattern.order,
+				title: pattern.title,
+				description: pattern.description,
+				lowScoreCount,
+				questionCount,
+				severity,
+			}
+		})
+		.filter((pattern) => pattern.lowScoreCount > 0)
+		.sort((a, b) => {
+			if (b.lowScoreCount !== a.lowScoreCount) {
+				return b.lowScoreCount - a.lowScoreCount
+			}
+			return a.order - b.order
+		})
+		.slice(0, 2)
+}
+
 const buildPhase2Result = (input: {
 	cycle: ReturnType<typeof mapDiagnosticCycle>
 	phase2Rows: Phase2ResponseRow[]
-	phase2Questions: DiagnosticPhase2QuestionBlueprint[]
 }): Phase2DetailedResult => {
 	const criticalPillar = isPillarKey(input.cycle.highlights.critical)
 		? input.cycle.highlights.critical
 		: null
-
-	const questionByKey = new Map(
-		input.phase2Questions.map((question) => [
-			`${question.questionType === 'technical' ? `technical:${criticalPillar}` : 'state:general'}:${question.questionNumber}`,
-			question,
-		]),
-	)
-
-	const criticalPointsInput = input.phase2Rows.map((row) => {
-		const lookupKey = `${row.question_type}:${row.question_number}`
-		const question = questionByKey.get(lookupKey)
-
-		return {
-			id: lookupKey,
-			questionType: row.question_type.startsWith('technical')
-				? ('technical' as const)
-				: ('state' as const),
-			questionNumber: row.question_number,
-			score: row.score,
-			title:
-				question?.title ??
-				`${row.question_type.startsWith('technical') ? 'Diagnóstico técnico' : 'Estado atual'} ${row.question_number}`,
-			...(criticalPillar ? { pillar: criticalPillar } : {}),
-		}
+	const technicalPatterns = buildPhase2TechnicalPatterns({
+		rows: input.phase2Rows,
+		criticalPillar,
 	})
-
-	const criticalPoints = getCriticalPoints(criticalPointsInput)
+	const stateBlocks = buildPhase2StateBlocks(input.phase2Rows)
+	const refinedGeneralIndex = Math.round(
+		input.cycle.indexes.phase2Technical * 0.6 +
+			input.cycle.indexes.phase2State * 0.4,
+	)
+	const refinedMaturity = classifyPhase2Refined(refinedGeneralIndex)
+	const refinedOverview = getPhase2OverviewText({
+		generalIndex: refinedGeneralIndex,
+		technicalIndex: input.cycle.indexes.phase2Technical,
+		stateIndex: input.cycle.indexes.phase2State,
+		criticalPillar,
+	})
 
 	return {
 		kind: 'phase2',
 		completedAt: input.cycle.timeline.phase2CompletedAt,
-		generalIndex: input.cycle.indexes.phase2General,
+		generalIndex: refinedGeneralIndex,
 		technicalIndex: input.cycle.indexes.phase2Technical,
 		stateIndex: input.cycle.indexes.phase2State,
 		criticalPillar,
-		overviewText: getPhase2OverviewText({
-			generalIndex: input.cycle.indexes.phase2General,
-			technicalIndex: input.cycle.indexes.phase2Technical,
-			stateIndex: input.cycle.indexes.phase2State,
-			criticalPillar,
-			criticalPointsCount: criticalPoints.length,
-		}),
-		criticalPoints,
+		overviewText: refinedOverview,
+		technicalPatterns,
+		stateBlocks,
 		metrics: [
 			{
 				label: 'Índice técnico',
@@ -472,10 +652,9 @@ const buildPhase2Result = (input: {
 			},
 			{
 				label: 'Índice geral refinado',
-				value: input.cycle.indexes.phase2General,
+				value: refinedGeneralIndex,
 				colorToken: 'tertiary',
-				description:
-					'Consolida a leitura técnica com a condição atual do usuário.',
+				description: `${refinedMaturity.label}: ${refinedOverview}`,
 			},
 		],
 		donutSegments: [
@@ -493,13 +672,126 @@ const buildPhase2Result = (input: {
 	}
 }
 
+const getStateBlockLevel = (
+	value: number,
+): 'critico' | 'moderado' | 'favoravel' => {
+	if (value <= 40) return 'critico'
+	if (value <= 70) return 'moderado'
+	return 'favoravel'
+}
+
+const getStateBlockDescription = (
+	blockId: 'physical' | 'psychological' | 'environmental' | 'social',
+	level: 'critico' | 'moderado' | 'favoravel',
+): string => {
+	if (blockId === 'physical') {
+		if (level === 'critico') {
+			return 'Seu corpo está sobrecarregado. Sono, energia, saúde ou alimentação estão comprometidos, o que reduz diretamente sua capacidade de execução. Recuperação física é prioridade antes de avanços no projeto.'
+		}
+		if (level === 'moderado') {
+			return 'Seu corpo responde de forma irregular. Há momentos de disposição misturados a períodos de desgaste. Pequenos ajustes na rotina física podem gerar ganhos significativos de performance.'
+		}
+		return 'Seu corpo está bem sustentado. Sono, energia e cuidados básicos estão alinhados, criando base física sólida para execução do projeto.'
+	}
+
+	if (blockId === 'psychological') {
+		if (level === 'critico') {
+			return 'Sua mente e emoções estão sob pressão intensa. Clareza, foco ou equilíbrio estão significativamente reduzidos, o que compromete decisões e consistência. Atenção imediata à saúde mental é necessária.'
+		}
+		if (level === 'moderado') {
+			return 'Sua mente opera com flutuações. Momentos de clareza alternam com dispersão ou instabilidade emocional. Estabilizar estes picos é o caminho para previsibilidade.'
+		}
+		return 'Sua mente está alinhada e emocionalmente estável. Clareza, foco e controle da tensão criam ambiente interno propício para execução.'
+	}
+
+	if (blockId === 'environmental') {
+		if (level === 'critico') {
+			return 'Seu ambiente está trabalhando contra você. Espaço, organização, tempo ou proteção contra interrupções estão severamente comprometidos. Reestruturação do entorno é essencial.'
+		}
+		if (level === 'moderado') {
+			return 'Seu ambiente é funcional mas instável. Há estrutura básica, mas falhas pontuais em espaço, tempo ou isolamento geram atrito constante. Ajustes específicos podem liberar muito potencial.'
+		}
+		return 'Seu ambiente apoia sua execução. Espaço definido, tempo protegido e organização adequada criam estrutura externa que facilita o avanço.'
+	}
+
+	if (level === 'critico') {
+		return 'Suas relações e recursos estão gerando pressão excessiva. Finanças, apoio social ou limites com terceiros demandam atenção urgente. Este peso externo está diretamente limitando seu projeto.'
+	}
+	if (level === 'moderado') {
+		return 'Suas relações e recursos são gerenciáveis mas precários. Há estabilidade relativa, mas vulnerabilidade a imprevistos ou demandas de terceiros. Fortalecer reservas e limites é recomendado.'
+	}
+	return 'Suas relações e recursos estão estáveis. Apoio disponível, finanças sob controle e limites claros criam segurança externa para focar no projeto.'
+}
+
+const buildPhase2StateBlocks = (
+	rows: Phase2ResponseRow[],
+): Array<{
+	id: 'physical' | 'psychological' | 'environmental' | 'social'
+	title: string
+	value: number
+	level: 'critico' | 'moderado' | 'favoravel'
+	description: string
+}> => {
+	const scoresByQuestion = new Map<number, number>()
+
+	for (const row of rows) {
+		if (!row.question_type.startsWith('state')) continue
+		if (row.question_number < 1 || row.question_number > 16) continue
+		scoresByQuestion.set(row.question_number, row.score)
+	}
+
+	const blockDefinitions = [
+		{
+			id: 'physical' as const,
+			title: 'Físico/Biológico',
+			start: 1,
+			end: 4,
+		},
+		{
+			id: 'psychological' as const,
+			title: 'Psicológico/Cognitivo',
+			start: 5,
+			end: 8,
+		},
+		{
+			id: 'environmental' as const,
+			title: 'Ambiental/Estrutural',
+			start: 9,
+			end: 12,
+		},
+		{
+			id: 'social' as const,
+			title: 'Social/Financeiro',
+			start: 13,
+			end: 16,
+		},
+	]
+
+	return blockDefinitions.map((block) => {
+		let sum = 0
+		for (let question = block.start; question <= block.end; question += 1) {
+			sum += scoresByQuestion.get(question) ?? 0
+		}
+
+		const value = Math.round((sum / 24) * 100)
+		const level = getStateBlockLevel(value)
+
+		return {
+			id: block.id,
+			title: block.title,
+			value,
+			level,
+			description: getStateBlockDescription(block.id, level),
+		}
+	})
+}
+
 export const useDiagnosticResultQuery = (
 	cycleId: string,
 	phase: ResultPhaseSlug,
 ) => {
 	const { user } = useAuth()
 	const { activeNiche } = useActiveNicheAccess()
-	const blueprintQuery = useDiagnosticBlueprintQuery()
 
 	return useQuery({
 		queryKey: [
@@ -556,13 +848,6 @@ export const useDiagnosticResultQuery = (
 				}
 			}
 
-			const criticalPillar = isPillarKey(cycle.highlights.critical)
-				? cycle.highlights.critical
-				: null
-			const phase2Questions = criticalPillar
-				? getBlueprintPhase2Questions(blueprintQuery.data, criticalPillar)
-				: []
-
 			return {
 				cycleId: cycle.id,
 				cycleNumber: cycle.cycleNumber,
@@ -573,7 +858,6 @@ export const useDiagnosticResultQuery = (
 				result: buildPhase2Result({
 					cycle,
 					phase2Rows: (phase2Rows ?? []) as Phase2ResponseRow[],
-					phase2Questions,
 				}),
 			}
 		},
