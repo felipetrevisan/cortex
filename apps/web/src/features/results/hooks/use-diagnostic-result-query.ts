@@ -618,7 +618,6 @@ const buildPhase2Result = (input: {
 		input.cycle.indexes.phase2Technical * 0.6 +
 			input.cycle.indexes.phase2State * 0.4,
 	)
-	const refinedMaturity = classifyPhase2Refined(refinedGeneralIndex)
 	const refinedOverview = getPhase2OverviewText({
 		generalIndex: refinedGeneralIndex,
 		technicalIndex: input.cycle.indexes.phase2Technical,
@@ -649,12 +648,6 @@ const buildPhase2Result = (input: {
 				colorToken: 'accent',
 				description:
 					'Mostra o quanto energia, foco e estabilidade ajudam ou travam a execução.',
-			},
-			{
-				label: 'Índice geral refinado',
-				value: refinedGeneralIndex,
-				colorToken: 'tertiary',
-				description: `${refinedMaturity.label}: ${refinedOverview}`,
 			},
 		],
 		donutSegments: [

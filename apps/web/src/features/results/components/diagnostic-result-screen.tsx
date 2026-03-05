@@ -17,7 +17,6 @@ import {
 	AlertTriangle,
 	ArrowLeft,
 	BarChart3,
-	CheckCircle2,
 	GitCompareArrows,
 	Loader2,
 	PieChart,
@@ -69,29 +68,6 @@ const getStructuralInsightIcon = (id: string) => {
 			return Target
 		default:
 			return Sparkles
-	}
-}
-
-const getFinalSummaryCardStyle = (
-	scenario: 'green' | 'yellow' | 'red',
-): CSSProperties => {
-	if (scenario === 'green') {
-		return {
-			borderColor:
-				'color-mix(in oklch, var(--color-emerald-500) 58%, transparent)',
-			background:
-				'linear-gradient(145deg, color-mix(in oklch, var(--color-emerald-500) 14%, var(--card)) 0%, color-mix(in oklch, var(--color-emerald-500) 6%, var(--card)) 100%)',
-			boxShadow:
-				'0 0 28px color-mix(in oklch, var(--color-emerald-500) 24%, transparent)',
-		}
-	}
-
-	return {
-		borderColor: 'color-mix(in oklch, var(--color-red-500) 58%, transparent)',
-		background:
-			'linear-gradient(145deg, color-mix(in oklch, var(--color-red-500) 14%, var(--card)) 0%, color-mix(in oklch, var(--color-red-500) 6%, var(--card)) 100%)',
-		boxShadow:
-			'0 0 28px color-mix(in oklch, var(--color-red-500) 24%, transparent)',
 	}
 }
 
@@ -460,6 +436,30 @@ export const DiagnosticResultScreen = ({
 							<p className="max-w-3xl text-sm leading-7 text-foreground/78">
 								{result.overviewText}
 							</p>
+							{result.kind === 'phase2' ? (
+								<div className="rounded-2xl border border-border/60 bg-background/35 p-4">
+									<p className="text-sm leading-6 text-foreground/80">
+										{generalMaturity.label}: {result.overviewText}
+									</p>
+									<div className="mt-3 flex items-center gap-3">
+										<div className="h-3 flex-1 rounded-full bg-secondary/70">
+											<div
+												className="h-full rounded-full transition-all duration-500"
+												style={{
+													width: `${Math.max(0, Math.min(100, result.generalIndex))}%`,
+													background:
+														'linear-gradient(90deg, color-mix(in oklch, var(--tertiary) 88%, white) 0%, var(--tertiary) 100%)',
+													boxShadow:
+														'0 0 16px color-mix(in oklch, var(--tertiary) 24%, transparent)',
+												}}
+											/>
+										</div>
+										<span className="text-sm font-semibold">
+											{result.generalIndex}%
+										</span>
+									</div>
+								</div>
+							) : null}
 						</div>
 						<div className="lg:justify-self-end">
 							<Card className="w-full min-w-[240px] rounded-3xl border-border/70 bg-background/60 text-center backdrop-blur-lg">
@@ -703,58 +703,6 @@ export const DiagnosticResultScreen = ({
 						</CardContent>
 					</Card>
 				)}
-
-				<Card
-					className="rounded-3xl border-2 border-border/70 bg-card/78 backdrop-blur-lg shadow-[0_10px_30px_rgba(2,8,23,0.08)]"
-					style={
-						result.kind === 'phase1'
-							? getFinalSummaryCardStyle(result.finalSummary.scenario)
-							: undefined
-					}
-				>
-					<CardHeader className="p-6 pb-3">
-						{result.kind === 'phase2' ? (
-							<CardDescription>Recomendação de leitura</CardDescription>
-						) : null}
-						<CardTitle className="flex items-center gap-2 text-lg">
-							<CheckCircle2 className="size-4 text-primary" />
-							{result.kind === 'phase1'
-								? 'Conclusão e Próximo Passo'
-								: 'Próxima decisão orientada'}
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-3 p-6 pt-2 text-sm leading-7 text-foreground/78">
-						{result.kind === 'phase1' ? (
-							<div className="rounded-2xl border-transparent bg-transparent p-0">
-								<p className="text-base font-semibold text-foreground">
-									{result.finalSummary.title}
-								</p>
-								<div className="mt-3 space-y-3">
-									{result.finalSummary.description
-										.split('\n\n')
-										.map((paragraph) => (
-											<p key={paragraph}>{paragraph}</p>
-										))}
-								</div>
-							</div>
-						) : (
-							<>
-								<p>
-									A fase aprofundada indica onde o problema deixa de ser
-									genérico e passa a ser operacional. Os pontos críticos
-									listados acima devem orientar o protocolo e as próximas
-									intervenções.
-								</p>
-								<p>
-									Quanto menor a diferença entre técnica e estado atual, mais o
-									avanço dependerá de correção sistêmica. Quanto maior a
-									diferença, mais o plano deve atacar o eixo mais baixo
-									primeiro.
-								</p>
-							</>
-						)}
-					</CardContent>
-				</Card>
 
 				<div className="flex justify-center pt-2">
 					<Link
