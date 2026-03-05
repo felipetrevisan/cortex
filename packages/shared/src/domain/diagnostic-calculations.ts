@@ -33,6 +33,16 @@ export interface Phase2Summary {
 	generalIndex: number
 }
 
+export interface Phase2RefinedClassification {
+	level: MaturityLevel
+	label: string
+}
+
+export type Phase2DominantVariable =
+	| 'both'
+	| 'state_condition'
+	| 'technical_method'
+
 export interface CriticalPointInput {
 	id: string
 	questionType: 'technical' | 'state'
@@ -205,13 +215,70 @@ export const computePhase2Summary = (
 ): Phase2Summary => {
 	const technicalIndex = toPercent(technicalScores)
 	const stateIndex = toPercent(stateScores)
-	const generalIndex = Math.round((technicalIndex + stateIndex) / 2)
+	const generalIndex = Math.round(technicalIndex * 0.6 + stateIndex * 0.4)
 
 	return {
 		technicalIndex,
 		stateIndex,
 		generalIndex,
 	}
+}
+
+export const classifyPhase2Refined = (
+	percent: number,
+): Phase2RefinedClassification => {
+	const value = Math.max(0, Math.min(100, percent))
+
+	if (value <= 35) {
+		return {
+			level: 'critico',
+			label: 'Crítico',
+		}
+	}
+
+	if (value <= 50) {
+		return {
+			level: 'instavel',
+			label: 'Instável',
+		}
+	}
+
+	if (value <= 70) {
+		return {
+			level: 'funcional',
+			label: 'Funcional',
+		}
+	}
+
+	return {
+		level: 'solido',
+		label: 'Sólido',
+	}
+}
+
+export const resolvePhase2DominantVariable = (
+	technicalIndex: number,
+	stateIndex: number,
+): Phase2DominantVariable => {
+	const difference = Math.abs(technicalIndex - stateIndex)
+
+	if (difference < 10) return 'both'
+	if (technicalIndex > stateIndex + 10) return 'state_condition'
+	return 'technical_method'
+}
+
+export const toPhase2DominantVariableText = (
+	dominantVariable: Phase2DominantVariable,
+): string => {
+	if (dominantVariable === 'both') {
+		return 'Tanto método técnico quanto condição atual'
+	}
+
+	if (dominantVariable === 'state_condition') {
+		return 'Sua condição atual (física, emocional ou ambiental)'
+	}
+
+	return 'Seu método técnico'
 }
 
 const toDiagnosisText = (input: CriticalPointInput): string => {

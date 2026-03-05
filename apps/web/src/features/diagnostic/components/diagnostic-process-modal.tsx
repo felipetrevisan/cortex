@@ -5,6 +5,7 @@ import { PILLARS } from '@cortex/shared/constants/pillars'
 import {
 	classifyGeneralStructure,
 	classifyMaturity,
+	classifyPhase2Refined,
 } from '@cortex/shared/domain/diagnostic-calculations'
 import { Button } from '@cortex/ui/components/button'
 import {
@@ -369,7 +370,7 @@ export const DiagnosticProcessModal = ({
 	const phase1GeneralMaturity = classifyGeneralStructure(
 		flow.phase1Summary?.generalIndex ?? 0,
 	)
-	const phase2GeneralMaturity = classifyMaturity(
+	const phase2GeneralMaturity = classifyPhase2Refined(
 		flow.phase2Summary?.generalIndex ?? 0,
 	)
 	const phase1HighlightCards = [
