@@ -54,7 +54,7 @@ const LogoMark = ({
 		return (
 			<span className={iconClassName}>
 				<Image
-					src="/brand/logo-white.png"
+					src="/brand/logo-cortex.png"
 					alt="CORTEX System"
 					width={officialLogoSize}
 					height={officialLogoSize}
@@ -69,7 +69,7 @@ const LogoMark = ({
 		return (
 			<span className={iconClassName}>
 				<Image
-					src="/brand/logo-black.png"
+					src="/brand/logo-cortex.png"
 					alt="CORTEX System"
 					width={officialLogoSize}
 					height={officialLogoSize}
@@ -83,19 +83,11 @@ const LogoMark = ({
 	return (
 		<span className={iconClassName}>
 			<Image
-				src="/brand/logo-black.png"
+				src="/brand/logo-cortex.png"
 				alt="CORTEX System"
 				width={officialLogoSize}
 				height={officialLogoSize}
-				className="size-full object-contain dark:hidden"
-				priority
-			/>
-			<Image
-				src="/brand/logo-white.png"
-				alt="CORTEX System"
-				width={officialLogoSize}
-				height={officialLogoSize}
-				className="hidden size-full object-contain dark:block"
+				className="size-full object-contain"
 				priority
 			/>
 		</span>
