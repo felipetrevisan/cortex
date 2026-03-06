@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Manrope, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import { AppProviders } from './providers'
@@ -14,9 +14,35 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-	title: 'CORTEX | Sistema de Diagnóstico',
-	description: 'Sistema de Diagnóstico para Conclusão de Projetos',
+	applicationName: 'CORTEX System',
+	title: 'CORTEX System | Diagnóstico',
+	description: 'CORTEX System para diagnóstico e evolução de projetos.',
 	manifest: '/manifest.webmanifest',
+	icons: {
+		icon: [
+			{ url: '/icons/icon.svg', type: 'image/svg+xml' },
+			{ url: '/brand/cortex-google-logo-512.png', sizes: '512x512' },
+		],
+		apple: [{ url: '/brand/cortex-google-logo-512.png', sizes: '512x512' }],
+	},
+	appleWebApp: {
+		capable: true,
+		statusBarStyle: 'default',
+		title: 'CORTEX System',
+	},
+	formatDetection: {
+		telephone: false,
+	},
+}
+
+export const viewport: Viewport = {
+	width: 'device-width',
+	initialScale: 1,
+	viewportFit: 'cover',
+	themeColor: [
+		{ media: '(prefers-color-scheme: light)', color: '#3169ff' },
+		{ media: '(prefers-color-scheme: dark)', color: '#1f3f91' },
+	],
 }
 
 export default function RootLayout({

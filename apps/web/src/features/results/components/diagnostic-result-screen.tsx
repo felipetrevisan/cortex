@@ -375,7 +375,7 @@ export const DiagnosticResultScreen = ({
 				avatarUrl={profileQuery.data?.avatarUrl ?? null}
 			/>
 
-			<section className="cortex-container space-y-7 py-8">
+			<section className="cortex-container space-y-5 py-5 sm:space-y-7 sm:py-8">
 				<div className="flex flex-wrap items-center justify-between gap-3">
 					<div className="space-y-3">
 						<Link
@@ -391,7 +391,7 @@ export const DiagnosticResultScreen = ({
 								<Badge variant="secondary">Ciclo {data.cycleNumber}</Badge>
 								<Badge variant="default">{data.phaseLabel}</Badge>
 							</div>
-							<h1 className="font-(--font-space) text-3xl tracking-tight">
+							<h1 className="font-(--font-space) text-2xl tracking-tight sm:text-3xl">
 								Resultado Completo {data.phaseLabel}
 							</h1>
 							<p className="max-w-3xl text-sm text-muted-foreground">
@@ -420,7 +420,7 @@ export const DiagnosticResultScreen = ({
 							: undefined
 					}
 				>
-					<CardContent className="grid gap-6 p-7 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+					<CardContent className="grid gap-5 p-5 sm:p-7 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
 						<div className="space-y-4">
 							<div className="flex items-center gap-2 text-primary">
 								<Sparkles className="size-4" />
@@ -538,8 +538,8 @@ export const DiagnosticResultScreen = ({
 							<CardTitle className="flex items-center gap-2 text-lg">
 								<BarChart3 className="size-4 text-primary" />
 								{result.kind === 'phase1'
-									? 'Força relativa dos pilares'
-									: 'Comparativo técnico e estado atual'}
+									? 'Força Relativa dos Pilares'
+									: 'Comparativo Técnico e Estado Atual'}
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="p-6 pt-2">
@@ -562,7 +562,7 @@ export const DiagnosticResultScreen = ({
 						title={
 							result.kind === 'phase1'
 								? 'Distribuição estrutural'
-								: 'Peso relativo dos índices'
+								: 'Peso Relativo dos Indices'
 						}
 						segments={result.donutSegments}
 					/>
@@ -638,12 +638,11 @@ export const DiagnosticResultScreen = ({
 						style={getPillarOutcomeCardStyle('critical')}
 					>
 						<CardHeader className="p-6 pb-3">
-							<CardDescription>Leitura consolidada por padrões</CardDescription>
 							<CardTitle
 								className="text-lg"
 								style={getPillarOutcomeLabelStyle('critical')}
 							>
-								Padrões técnicos prioritários
+								Leitura Consolidada por Padrões Técnicos Prioritários
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="grid gap-4 p-6 pt-2">

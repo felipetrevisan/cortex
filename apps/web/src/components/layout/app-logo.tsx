@@ -55,7 +55,7 @@ const LogoMark = ({
 			<span className={iconClassName}>
 				<Image
 					src="/brand/logo-white.png"
-					alt="CORTEX"
+					alt="CORTEX System"
 					width={officialLogoSize}
 					height={officialLogoSize}
 					className="size-full object-contain"
@@ -70,7 +70,7 @@ const LogoMark = ({
 			<span className={iconClassName}>
 				<Image
 					src="/brand/logo-black.png"
-					alt="CORTEX"
+					alt="CORTEX System"
 					width={officialLogoSize}
 					height={officialLogoSize}
 					className="size-full object-contain"
@@ -84,7 +84,7 @@ const LogoMark = ({
 		<span className={iconClassName}>
 			<Image
 				src="/brand/logo-black.png"
-				alt="CORTEX"
+				alt="CORTEX System"
 				width={officialLogoSize}
 				height={officialLogoSize}
 				className="size-full object-contain dark:hidden"
@@ -92,7 +92,7 @@ const LogoMark = ({
 			/>
 			<Image
 				src="/brand/logo-white.png"
-				alt="CORTEX"
+				alt="CORTEX System"
 				width={officialLogoSize}
 				height={officialLogoSize}
 				className="hidden size-full object-contain dark:block"
@@ -116,12 +116,12 @@ export const AppLogo = ({
 			<div className="leading-none">
 				<strong
 					className={cn(
-						'font-extrabold uppercase',
+						'font-extrabold',
 						sizeClasses[size].title,
 						isDarkSurface ? 'text-white' : 'text-foreground',
 					)}
 				>
-					CORTEX
+					CORTEX System
 				</strong>
 				{showTagline ? (
 					<p
@@ -131,7 +131,7 @@ export const AppLogo = ({
 							isDarkSurface ? 'text-slate-200/88' : 'text-muted-foreground',
 						)}
 					>
-						Sistema de Diagnóstico para Conclusão de Projetos
+						Diagnóstico e evolução inteligente de projetos
 					</p>
 				) : null}
 			</div>

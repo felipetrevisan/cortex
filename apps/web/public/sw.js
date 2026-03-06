@@ -1,5 +1,11 @@
-const CACHE_NAME = 'cortex-shell-v1'
-const APP_SHELL = ['/', '/login', '/dashboard', '/manifest.webmanifest']
+const CACHE_NAME = 'cortex-system-shell-v2'
+const APP_SHELL = [
+	'/',
+	'/login',
+	'/dashboard',
+	'/offline',
+	'/manifest.webmanifest',
+]
 
 self.addEventListener('install', (event) => {
 	event.waitUntil(
@@ -26,6 +32,7 @@ self.addEventListener('fetch', (event) => {
 	const requestUrl = new URL(event.request.url)
 	const isSameOrigin = requestUrl.origin === self.location.origin
 	if (!isSameOrigin) return
+	const isNavigationRequest = event.request.mode === 'navigate'
 
 	event.respondWith(
 		fetch(event.request)
@@ -39,7 +46,11 @@ self.addEventListener('fetch', (event) => {
 			.catch(() =>
 				caches
 					.match(event.request)
-					.then((cached) => cached || caches.match('/')),
+					.then((cached) => {
+						if (cached) return cached
+						if (isNavigationRequest) return caches.match('/offline')
+						return caches.match('/')
+					}),
 			),
 	)
 })

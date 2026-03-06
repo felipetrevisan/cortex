@@ -62,6 +62,7 @@ export interface DiagnosticBlueprint {
 	>
 	phase2StateQuestions: DiagnosticPhase2QuestionBlueprint[]
 	protocolReflections: string[]
+	protocolReflectionsByPillar: Record<PillarKey, string[]>
 	protocolActionBlocks: DiagnosticProtocolActionBlockBlueprint[]
 }
 
@@ -128,6 +129,12 @@ const fallbackBlueprint: DiagnosticBlueprint = {
 		options: fallbackOptions,
 	})),
 	protocolReflections: [...PROTOCOL_REFLECTION_PROMPTS],
+	protocolReflectionsByPillar: {
+		clarity: [...PROTOCOL_REFLECTION_PROMPTS],
+		structure: [...PROTOCOL_REFLECTION_PROMPTS],
+		execution: [...PROTOCOL_REFLECTION_PROMPTS],
+		emotional: [...PROTOCOL_REFLECTION_PROMPTS],
+	},
 	protocolActionBlocks: [...PROTOCOL_ACTION_BLOCKS],
 }
 
@@ -316,6 +323,30 @@ export const useDiagnosticBlueprintQuery = () => {
 				const reflectionPhases = phases.filter(
 					(phase) => phase.phaseType === 'protocol_reflection',
 				)
+
+				const protocolReflectionsByPillar: Record<PillarKey, string[]> = {
+					clarity: [],
+					structure: [],
+					execution: [],
+					emotional: [],
+				}
+				const protocolReflectionsFallback: string[] = []
+
+				reflectionPhases.forEach((phase) => {
+					const prompts = (questionsByPhase.get(phase.id) ?? []).map(
+						(item) => item.prompt,
+					)
+					if (prompts.length === 0) return
+
+					const phasePillar = toPillarKey(phase.pillar)
+					if (phasePillar) {
+						protocolReflectionsByPillar[phasePillar] = prompts
+						return
+					}
+
+					protocolReflectionsFallback.push(...prompts)
+				})
+
 				const protocolReflections = reflectionPhases.flatMap((phase) =>
 					(questionsByPhase.get(phase.id) ?? []).map((item) => item.prompt),
 				)
@@ -356,6 +387,32 @@ export const useDiagnosticBlueprintQuery = () => {
 						protocolReflections.length > 0
 							? protocolReflections
 							: [...PROTOCOL_REFLECTION_PROMPTS],
+					protocolReflectionsByPillar: {
+						clarity:
+							protocolReflectionsByPillar.clarity.length > 0
+								? protocolReflectionsByPillar.clarity
+								: protocolReflectionsFallback.length > 0
+									? protocolReflectionsFallback
+									: [...PROTOCOL_REFLECTION_PROMPTS],
+						structure:
+							protocolReflectionsByPillar.structure.length > 0
+								? protocolReflectionsByPillar.structure
+								: protocolReflectionsFallback.length > 0
+									? protocolReflectionsFallback
+									: [...PROTOCOL_REFLECTION_PROMPTS],
+						execution:
+							protocolReflectionsByPillar.execution.length > 0
+								? protocolReflectionsByPillar.execution
+								: protocolReflectionsFallback.length > 0
+									? protocolReflectionsFallback
+									: [...PROTOCOL_REFLECTION_PROMPTS],
+						emotional:
+							protocolReflectionsByPillar.emotional.length > 0
+								? protocolReflectionsByPillar.emotional
+								: protocolReflectionsFallback.length > 0
+									? protocolReflectionsFallback
+									: [...PROTOCOL_REFLECTION_PROMPTS],
+					},
 					protocolActionBlocks:
 						protocolActionBlocks.length > 0
 							? protocolActionBlocks

@@ -107,7 +107,13 @@ body {
 
 .cortex-container {
 	margin-inline: auto;
-	width: min(1200px, calc(100% - 2rem));
+	width: min(1200px, calc(100% - 1rem));
+}
+
+@media (min-width: 640px) {
+	.cortex-container {
+		width: min(1200px, calc(100% - 2rem));
+	}
 }
 
 .surface-glass {

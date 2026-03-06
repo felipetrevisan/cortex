@@ -196,17 +196,17 @@ export const LoginScreen = ({ oauthErrorMessage = null }: LoginScreenProps) => {
 							<h1 className="font-[var(--font-space)] text-5xl leading-[1.05] tracking-tight">
 								Bem-vindo ao{' '}
 								<span className="bg-gradient-to-r from-cyan-300 via-sky-300 to-violet-300 bg-clip-text text-transparent">
-									CORTEX
+									CORTEX System
 								</span>
 							</h1>
 							<h2 className="text-xl font-medium text-blue-100">
-								Sistema de Diagnóstico para Conclusão de Projetos
+								Diagnóstico e evolução inteligente de projetos
 							</h2>
 							<p className="max-w-lg text-sm leading-relaxed text-blue-50/90">
-								O CORTEX analisa quatro pilares estruturais que determinam a
-								capacidade de um projeto ser levado até a conclusão. Identifique
-								gargalos, receba um plano de ação personalizado e acompanhe sua
-								evolução ao longo do tempo.
+								O CORTEX System analisa quatro pilares estruturais que
+								determinam a capacidade de um projeto ser levado até a
+								conclusão. Identifique gargalos, receba um plano de ação
+								personalizado e acompanhe sua evolução ao longo do tempo.
 							</p>
 						</div>
 

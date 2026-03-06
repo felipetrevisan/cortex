@@ -312,28 +312,28 @@ const PHASE2_TECHNICAL_PATTERNS: Record<
 		{
 			order: 1,
 			questionNumbers: [1, 2, 5, 6],
-			title: 'Padrão 1: Definição vaga',
+			title: 'Definição vaga',
 			description:
 				'Você opera sem definição clara do que significa concluir. O sucesso do projeto está nebuloso, o que torna impossível saber quando chegar lá ou se está no caminho certo. A ausência de critérios objetivos gera constante redefinição de expectativas.',
 		},
 		{
 			order: 2,
 			questionNumbers: [8, 9, 12, 14],
-			title: 'Padrão 2: Desalinhamento estratégico',
+			title: 'Desalinhamento estratégico',
 			description:
 				'Suas decisões diárias não estão conectadas a uma direção maior. Você tem atividade mas não progresso estratégico, prioridades competem entre si sem hierarquia clara, e a ação se desgasta em caminhos que não levam ao objetivo central.',
 		},
 		{
 			order: 3,
 			questionNumbers: [3, 4, 10, 13],
-			title: 'Padrão 3: Instabilidade de direção',
+			title: 'Instabilidade de direção',
 			description:
 				'Você redefine constantemente o que está construindo. O escopo se expande descontroladamente, metas mudam diante de dificuldades, e a estratégia é revisada antes de gerar resultados. Este ciclo de reinício impede acúmulo de progresso real.',
 		},
 		{
 			order: 4,
 			questionNumbers: [7, 11],
-			title: 'Padrão 4: Confusão e imprecisão operacional',
+			title: 'Confusão e imprecisão operacional',
 			description:
 				'Você confunde ocupação com produtividade e inicia sem preparo adequado. Movimento constante mascara a ausência de entregas concretas, enquanto a falta de clareza mínima no início gera retrabalho e dúvida ao longo do caminho.',
 		},
@@ -342,28 +342,28 @@ const PHASE2_TECHNICAL_PATTERNS: Record<
 		{
 			order: 1,
 			questionNumbers: [1, 2, 3, 9],
-			title: 'Padrão 1: Fragmentação operacional',
+			title: 'Fragmentação operacional',
 			description:
 				'Você trabalha com informações dispersas e tarefas mal definidas. Metas não se transformam em ações concretas, checklists são inexistentes ou ignorados, e decisões importantes se perdem na memória. A fragmentação gera ansiedade operacional constante.',
 		},
 		{
 			order: 2,
 			questionNumbers: [4, 5, 8, 10],
-			title: 'Padrão 2: Planejamento deficiente',
+			title: 'Planejamento deficiente',
 			description:
 				'Você executa antes de planejar adequadamente. Prazos são estabelecidos sem base realista, obstáculos surgem como surpresas, e o retrabalho se acumula por falta de antecipação. A pressa inicial gera lentidão posterior.',
 		},
 		{
 			order: 3,
 			questionNumbers: [6, 7, 11, 12],
-			title: 'Padrão 3: Acompanhamento inexistente',
+			title: 'Acompanhamento inexistente',
 			description:
 				'Você não monitora o que está acontecendo. O progresso é desconhecido, ajustes só ocorrem quando já é tarde, e o projeto depende exclusivamente de você estar motivado. A ausência de visibilidade impede correções de rota.',
 		},
 		{
 			order: 4,
 			questionNumbers: [13, 14],
-			title: 'Padrão 4: Método não replicável',
+			title: 'Método não replicável',
 			description:
 				'Você não possui sistema próprio de organização. Cada projeto é reinventado do zero, sem método transferível, e a organização atual não reduz ansiedade. A dependência de soluções improvisadas gera inconsistência entre projetos.',
 		},
@@ -372,28 +372,28 @@ const PHASE2_TECHNICAL_PATTERNS: Record<
 		{
 			order: 1,
 			questionNumbers: [1, 10, 12, 13],
-			title: 'Padrão 1: Dependência emocional para iniciar',
+			title: 'Dependência emocional para iniciar',
 			description:
 				'Você depende de estar motivado para agir. A execução só acontece no "clima" certo, intenções raramente viram ação imediata, e a busca por perfeição impede finalização. Seu progresso é refém de oscilações internas.',
 		},
 		{
 			order: 2,
 			questionNumbers: [2, 3, 4, 5],
-			title: 'Padrão 2: Gestão de atenção fragilizada',
+			title: 'Gestão de atenção fragilizada',
 			description:
 				'Você não protege seu tempo de trabalho profundo. Blocos de tempo são inexistentes, multitarefa fragmenta seu esforço, distrações dominam o ambiente, e metas diárias mínimas não são estabelecidas. O foco é intermitente e superficial.',
 		},
 		{
 			order: 3,
 			questionNumbers: [6, 8, 9, 14],
-			title: 'Padrão 3: Ausência de ritmo',
+			title: 'Ausência de ritmo',
 			description:
 				'Você não mantém regularidade na execução. Avaliações de desempenho não ocorrem, ritmo é imprevisível, ciclos longos de paralisação são frequentes, e constância por semanas é inatingível. O projeto avança em picos esporádicos e morre em vales prolongados.',
 		},
 		{
 			order: 4,
 			questionNumbers: [7, 11],
-			title: 'Padrão 4: Quebra de compromissos',
+			title: 'Quebra de compromissos',
 			description:
 				'Você inicia mas não sustenta. Falhas não são corrigidas rapidamente, microcompromissos são quebrados regularmente, e a palavra dada a si mesmo perde valor. A desconfiança interna mina cada nova tentativa de regularidade.',
 		},
@@ -402,28 +402,28 @@ const PHASE2_TECHNICAL_PATTERNS: Record<
 		{
 			order: 1,
 			questionNumbers: [3, 5, 11, 12],
-			title: 'Padrão 1: Intolerância à imperfeição',
+			title: 'Intolerância à imperfeição',
 			description:
 				'Você é refém da própria exigência. Imperfeição inicial é inaceitável, erros são dramatizados, comparações destrutivas são constantes, e progresso parcial é ignorado. A busca pelo ideal impede o real.',
 		},
 		{
 			order: 2,
 			questionNumbers: [4, 13, 1, 2],
-			title: 'Padrão 2: Vulnerabilidade à crítica e exposição',
+			title: 'Vulnerabilidade à crítica e exposição',
 			description:
 				'Você evita exposição por medo de julgamento. Críticas desestabilizam, ansiedade não é regulada, gatilhos emocionais passam despercebidos, e técnicas de controle são inexistentes. O projeto fica escondido para se manter seguro.',
 		},
 		{
 			order: 3,
 			questionNumbers: [6, 7, 8, 10],
-			title: 'Padrão 3: Recuperação lenta de frustrações',
+			title: 'Recuperação lenta de frustrações',
 			description:
 				'Você demora para retomar após contratempos. Frustrações paralisam, autossabotagem é invisível, energia mental não é regulada antes de agir, e decisões sob estresse são impulsivas. O tempo de recuperação consome o tempo de execução.',
 		},
 		{
 			order: 4,
 			questionNumbers: [9, 14],
-			title: 'Padrão 4: Desconforto emocional paralisante',
+			title: 'Desconforto emocional paralisante',
 			description:
 				'Você evita ação quando emocionalmente desconfortável. A perspectiva de longo prazo se perde diante de tensões imediatas, e agir com desconforto é impossível. O projeto espera você se sentir bem para continuar.',
 		},
@@ -639,13 +639,13 @@ const buildPhase2Result = (input: {
 			{
 				label: 'Índice técnico',
 				value: input.cycle.indexes.phase2Technical,
-				colorToken: 'primary',
+				colorToken: 'accent',
 				description: 'Mostra a robustez do método aplicado ao pilar crítico.',
 			},
 			{
 				label: 'Estado atual',
 				value: input.cycle.indexes.phase2State,
-				colorToken: 'accent',
+				colorToken: 'primary',
 				description:
 					'Mostra o quanto energia, foco e estabilidade ajudam ou travam a execução.',
 			},

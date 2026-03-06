@@ -1006,7 +1006,7 @@ export const DiagnosticProcessModal = ({
 										<div className="grid gap-4 sm:grid-cols-3">
 											<div className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg">
 												<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-													Índice técnico
+													Índice Técnico
 												</p>
 												<p className="mt-1 text-2xl font-bold">
 													{flow.phase2Summary?.technicalIndex ?? 0}%
@@ -1021,7 +1021,7 @@ export const DiagnosticProcessModal = ({
 											</div>
 											<div className="rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-lg">
 												<p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-													Índice estado atual
+													Índice Estado Atual
 												</p>
 												<p className="mt-1 text-2xl font-bold">
 													{flow.phase2Summary?.stateIndex ?? 0}%

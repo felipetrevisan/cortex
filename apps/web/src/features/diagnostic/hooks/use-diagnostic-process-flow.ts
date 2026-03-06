@@ -452,10 +452,22 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 		return getBlueprintPhase2Questions(blueprint, resolvedCriticalPillar)
 	}, [blueprint, resolvedCriticalPillar])
 
+	const protocolReflectionPrompts = useMemo(() => {
+		if (!blueprint) return []
+
+		if (resolvedCriticalPillar) {
+			const pillarPrompts =
+				blueprint.protocolReflectionsByPillar?.[resolvedCriticalPillar] ?? []
+			if (pillarPrompts.length > 0) return pillarPrompts
+		}
+
+		return blueprint.protocolReflections
+	}, [blueprint, resolvedCriticalPillar])
+
 	const totalPhase2Questions = phase2Questions.length
 	const reflectionCount = Math.max(
 		1,
-		blueprint?.protocolReflections.length ?? 5,
+		protocolReflectionPrompts.length ?? 5,
 	)
 
 	const saveCheckpoint = useCallback(
@@ -1716,7 +1728,6 @@ export const useDiagnosticProcessFlow = (isOpen: boolean) => {
 		return phase2Questions[phase2Step.questionIndex] ?? null
 	}, [phase2Questions, phase2Step])
 
-	const protocolReflectionPrompts = blueprint?.protocolReflections ?? []
 	const protocolActionBlocks = blueprint?.protocolActionBlocks?.length
 		? blueprint.protocolActionBlocks
 		: []

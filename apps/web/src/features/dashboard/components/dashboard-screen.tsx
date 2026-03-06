@@ -132,7 +132,7 @@ export const DashboardScreen = () => {
 				onEditAvatar={() => setIsAvatarModalOpen(true)}
 			/>
 
-			<section className="cortex-container mt-8 space-y-7 md:space-y-8">
+			<section className="cortex-container mt-5 space-y-6 sm:mt-7 sm:space-y-7 md:space-y-8">
 				<Reveal>
 					<div className="space-y-2">
 						<div className="flex flex-wrap items-center gap-3">
@@ -141,7 +141,7 @@ export const DashboardScreen = () => {
 								avatarUrl={viewModel.avatarUrl}
 								size="lg"
 							/>
-							<h1 className="font-(--font-space) text-3xl tracking-tight">
+							<h1 className="font-(--font-space) text-2xl tracking-tight sm:text-3xl">
 								Olá, {viewModel.greetingName}
 							</h1>
 							<span className="rounded-full border border-border/70 bg-secondary/55 px-3 py-1 text-xs font-semibold">
@@ -180,7 +180,7 @@ export const DashboardScreen = () => {
 					</div>
 				</Reveal>
 
-				<Reveal delay={0.05} className="grid gap-5 md:grid-cols-3">
+				<Reveal delay={0.05} className="grid gap-4 md:grid-cols-3 md:gap-5">
 					<Card className={dashboardCardClassName}>
 						<CardHeader className="gap-2 p-6">
 							<CardDescription>Avaliação atual</CardDescription>
@@ -232,7 +232,7 @@ export const DashboardScreen = () => {
 						<h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 							Conquistas CORTEX
 						</h2>
-						<div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
+						<div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 							{viewModel.achievements.map((item) => {
 								const Icon = achievementIconMap[item.key]
 								const isLocked = item.status === 'locked'
